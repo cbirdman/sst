@@ -1,6 +1,7 @@
 library(XML)
 library(jsonlite)
 library(stringr)
+library(tidyr)
 library(zoo)
 library(plyr)
 library(dplyr)
@@ -12,17 +13,18 @@ gameid<-"2016042306"
 location<-"N"
 
 # Rename game to make more easily understandable
-games<-fread("C:/Users/brocatoj/Documents/Basketball/Tracking/games.csv")
+games<-fread("C:/Users/brocatoj/Documents/Basketball/Tracking/meta/games.csv")
 games<-games[stats_id==gameid,.(stats_id,id,game)]
 game_name<-games$game[1]
 ss_id<-games$id[1]
 
 # IMPORT MARKINGS
-js<-fromJSON(paste0("C:/Users/brocatoj/Documents/Basketball/eagle/updates/",
+#js<-fromJSON(paste0("J:/eagle/markings/",ss_id,".json"))
+js<-fromJSON(paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/markings/",
                     ss_id,".json"))
 
 # EXTRACT TRACKING DATA
-svu<-data.table()
+frames<-data.table()
 
 for(i in c("Q1","Q2","Q3","Q4","OT1","OT2","OT3","OT4","OT5")){
     if(!file.exists(
@@ -40,15 +42,15 @@ for(i in c("Q1","Q2","Q3","Q4","OT1","OT2","OT3","OT4","OT5")){
     q[,period:=ifelse(substr(i,1,1)=="Q",
                      as.numeric(substr(i,nchar(i),nchar(i))),
                      as.numeric(substr(i,nchar(i),nchar(i)))+4)]
-    svu<-rbind(svu,q)
+    frames<-rbind(frames,q)
     rm(q)
 }
 
 # CLEAN TRACKING DATA
-svu[,locations:=ifelse(str_count(locations,";")==9,
+frames[,locations:=ifelse(str_count(locations,";")==9,
                        paste0("-1,-1,0,0,0;",locations),locations)]
-svu[str_count(locations,";")==10]
-svu<-svu %>%
+frames[str_count(locations,";")==10]
+frames<-frames %>%
     separate(locations,c("ball_tm","ball","ball_x","ball_y","ball_z","hp1_tm",
                          "hp1","hp1_x","hp1_y","hp1_z","hp2_tm","hp2","hp2_x",
                          "hp2_y","hp2_z","hp3_tm","hp3","hp3_x","hp3_y","hp3_z",
@@ -59,9 +61,13 @@ svu<-svu %>%
                          "ap4_y","ap4_z","ap5_tm","ap5","ap5_x","ap5_y",
                          "ap5_z"),sep="\\,|\\;")
 
-svu[,game_code:=ss_id]
-svu[,home_team:=js$meta$home_id]
-svu[,away_team:=js$meta$away_id]
-svu<-svu[,c(62,60,61,2,1,63:64,7:9,11:13,16:18,21:23,26:28,31:33,36:38,41:43,
-            46:48,51:53,56:58),with=F]
-setnames(svu,c("time","game-clock"),c("utcTime","gameClock"))
+frames[,game_code:=ss_id]
+frames[,home_team:=js$meta$home_id]
+frames[,away_team:=js$meta$away_id]
+frames<-frames[,c(62,60,61,2,1,63:64,7:9,11:13,16:18,21:23,26:28,31:33,36:38,
+                  41:43,46:48,51:53,56:58),with=F]
+setnames(frames,c("time","game-clock"),c("utcTime","gameClock"))
+
+# Write csv for quicker future parsing
+#fwrite(frames,paste0("J:/eagle/frames/",ss_id,".csv"))
+fwrite(frames,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/frames/",ss_id,".csv"))
