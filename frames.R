@@ -12,11 +12,12 @@ library(data.table)
 gameid<-"2016042306"
 location<-"N"
 
-# Rename game to make more easily understandable
+# Import necessary data
 games<-fread("C:/Users/brocatoj/Documents/Basketball/Tracking/meta/games.csv")
 games<-games[stats_id==gameid,.(stats_id,id,game)]
 game_name<-games$game[1]
 ss_id<-games$id[1]
+players<-fread("C:/Users/brocatoj/Documents/Basketball/Tracking/meta/players.csv")
 
 # IMPORT MARKINGS
 #js<-fromJSON(paste0("J:/eagle/markings/",ss_id,".json"))
@@ -61,12 +62,29 @@ frames<-frames %>%
                          "ap4_y","ap4_z","ap5_tm","ap5","ap5_x","ap5_y",
                          "ap5_z"),sep="\\,|\\;")
 
-frames[,game_code:=ss_id]
+frames$game_code<-ss_id
 frames[,home_team:=js$meta$home_id]
 frames[,away_team:=js$meta$away_id]
 frames<-frames[,c(62,60,61,2,1,63:64,7:9,11:13,16:18,21:23,26:28,31:33,36:38,
                   41:43,46:48,51:53,56:58),with=F]
 setnames(frames,c("time","game-clock"),c("utcTime","gameClock"))
+
+# MAP SS IDs ONTO FRAMES
+for(i in c("hp1","hp2","hp3","hp4","hp5","ap1","ap2","ap3","ap4","ap5")){
+    ids<-players[,.(stats_id,id)]
+    ids$stats_id<-as.character(ids$stats_id)
+    ids<-ids[!is.na(id)]
+    setnames(ids,c(i,paste0(i,"_2")))
+    frames<-left_join(frames,ids,by=i)
+}
+ 
+setDT(frames)
+frames<-frames[,c(1:10,41,12:13,42,15:16,43,18:19,44,21:22,45,24:25,46,27:28,47,
+                  30:31,48,33:34,49,36:37,50,39:40),with=F]
+setnames(frames,c("hp1_2","hp2_2","hp3_2","hp4_2","hp5_2",
+                  "ap1_2","ap2_2","ap3_2","ap4_2","ap5_2"),
+                c("hp1","hp2","hp3","hp4","hp5","ap1","ap2","ap3","ap4","ap5"))
+
 
 # Write csv for quicker future parsing
 #fwrite(frames,paste0("J:/eagle/frames/",ss_id,".csv"))

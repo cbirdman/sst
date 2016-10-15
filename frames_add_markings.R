@@ -11,8 +11,10 @@ source("functions.R")
 gameid<-"2016042307"
 # frames<-fread(paste0("J:/eagle/frames/",gameid,".csv"))
 # js<-fromJSON(paste0("J:/eagle/markings/",gameid,".json"))
-frames<-fread(paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/frames/",gameid,".csv"))
-js<-fromJSON(paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/markings/",gameid,".json"))
+path<-"C:/Users/brocatoj/Documents/Basketball/Tracking/"
+frames<-fread(paste0(path,"frames/",gameid,".csv"))
+js<-fromJSON(paste0(path,"markings/",gameid,".json"))
+players<-fread(paste0(path,"meta/players.csv"))
 
 # Add markings
     # From shots
@@ -87,13 +89,19 @@ js<-fromJSON(paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/markings/",
     other[,frame:=substr(possession_id,13,50)][,player_id:=NA][,dplayer_id:=NA]
     other<-other[,.(period,frame,event,player_id,dplayer_id)]
 
+# Clean markings
 markings<-rbind(markings,passes,touches,dribbles,fouls,rebounds,picks,drives,other)
-rm(list= ls()[!(ls() %in% c('frames','markings'))])
 markings<-markings[order(period, frame)]
 markings[,mid:=paste0(period,"_",frame)]
 markings[,order:=ifelse(event%in%c("DRIB","POSS","PASS"),2,1)]
 markings<-markings[order(order)]
 markings<-distinct(markings,mid,.keep_all=T)
 markings<-markings[,.(mid,event,player_id,dplayer_id)]
+
+# Merge markings onto frames
 frames[,mid:=paste0(period,"_",idx)]
-frames<-left_join(frames,markings,by="mid")
+frames<-left_join(frames,markings,by="mid");setDT(frames)
+frames[,home_team:=NULL][,away_team:=NULL][,mid:=NULL]
+
+# Remove unnecessary dataframes
+rm(list= ls()[!(ls() %in% c('frames','markings'))])
