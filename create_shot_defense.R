@@ -6,23 +6,24 @@ df[,Shooter:=ifelse(event%in%c("2PM","2PX","3PM","3PX","SF"),player_id,NA)]
 df[,Shooter:=na.locf(Shooter,fromLast = T)]
 df[,defender:=NA]
 for(i in c("hp1","hp2","hp3","hp4","hp5","ap1","ap2","ap3","ap4","ap5")){
-  d1<-pdist(df[[paste0(i,"_x")]],ifelse(grepl("h",i),df$ap1_x,df$hp1_x),
-            df[[paste0(i,"_y")]],ifelse(grepl("h",i),df$ap1_y,df$hp1_y))
-  d2<-pdist(df[[paste0(i,"_x")]],ifelse(grepl("h",i),df$ap2_x,df$hp2_x),
-            df[[paste0(i,"_y")]],ifelse(grepl("h",i),df$ap2_y,df$hp2_y))
-  d3<-pdist(df[[paste0(i,"_x")]],ifelse(grepl("h",i),df$ap3_x,df$hp3_x),
-            df[[paste0(i,"_y")]],ifelse(grepl("h",i),df$ap3_y,df$hp3_y))
-  d4<-pdist(df[[paste0(i,"_x")]],ifelse(grepl("h",i),df$ap4_x,df$hp4_x),
-            df[[paste0(i,"_y")]],ifelse(grepl("h",i),df$ap4_y,df$hp4_y))
-  d5<-pdist(df[[paste0(i,"_x")]],ifelse(grepl("h",i),df$ap5_x,df$hp5_x),
-            df[[paste0(i,"_y")]],ifelse(grepl("h",i),df$ap5_y,df$hp5_y))
-  df[,defender:=ifelse(Shooter==i,
-    ifelse(d1==min(d1,d2,d3,d4,d5),ifelse(grepl("h",i),ap1,hp1),
-    ifelse(d2==min(d1,d2,d3,d4,d5),ifelse(grepl("h",i),ap2,hp2),
-    ifelse(d3==min(d1,d2,d3,d4,d5),ifelse(grepl("h",i),ap3,hp3),
-    ifelse(d4==min(d1,d2,d3,d4,d5),ifelse(grepl("h",i),ap4,hp4),
-    ifelse(d5==min(d1,d2,d3,d4,d5),ifelse(grepl("h",i),ap5,hp5),defender))))),defender)]
+  df[,d1:=pdist(df[[paste0(i,"_x")]],ifelse(grepl("h",i),ap1_x,hp1_x),
+                df[[paste0(i,"_y")]],ifelse(grepl("h",i),ap1_y,hp1_y))]
+  df[,d2:=pdist(df[[paste0(i,"_x")]],ifelse(grepl("h",i),ap2_x,hp2_x),
+                    df[[paste0(i,"_y")]],ifelse(grepl("h",i),ap2_y,hp2_y))]
+  df[,d3:=pdist(df[[paste0(i,"_x")]],ifelse(grepl("h",i),ap3_x,hp3_x),
+                df[[paste0(i,"_y")]],ifelse(grepl("h",i),ap3_y,hp3_y))]
+  df[,d4:=pdist(df[[paste0(i,"_x")]],ifelse(grepl("h",i),ap4_x,hp4_x),
+                    df[[paste0(i,"_y")]],ifelse(grepl("h",i),ap4_y,hp4_y))]
+  df[,d5:=pdist(df[[paste0(i,"_x")]],ifelse(grepl("h",i),ap5_x,hp5_x),
+                    df[[paste0(i,"_y")]],ifelse(grepl("h",i),ap5_y,hp5_y))]
+  df[,defender:=ifelse(Shooter==df[[i]],
+    ifelse(d1==pmin(d1,d2,d3,d4,d5),ifelse(grepl("h",i),ap1,hp1),
+    ifelse(d2==pmin(d1,d2,d3,d4,d5),ifelse(grepl("h",i),ap2,hp2),
+    ifelse(d3==pmin(d1,d2,d3,d4,d5),ifelse(grepl("h",i),ap3,hp3),
+    ifelse(d4==pmin(d1,d2,d3,d4,d5),ifelse(grepl("h",i),ap4,hp4),
+    ifelse(d5==pmin(d1,d2,d3,d4,d5),ifelse(grepl("h",i),ap5,hp5),defender))))),defender)]
 }
+#df[,d1:=NULL][,d2:=NULL][,d3:=NULL][,d4:=NULL][,d5:=NULL]
 
 
 # DEF TYPES: define
