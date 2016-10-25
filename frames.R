@@ -17,7 +17,7 @@ games<-fread("C:/Users/brocatoj/Documents/Basketball/Tracking/meta/games.csv")
 games<-games[stats_id==gameid,.(stats_id,id,game)]
 game_name<-games$game[1]
 ss_id<-games$id[1]
-players<-fread("C:/Users/brocatoj/Documents/Basketball/Tracking/meta/players.csv")
+players<-fread("C:/Users/brocatoj/Documents/Basketball/Tracking/meta/players_plus.csv")
 
 # IMPORT MARKINGS
 #js<-fromJSON(paste0("J:/eagle/markings/",ss_id,".json"))
@@ -88,4 +88,4 @@ setnames(frames,c("hp1_2","hp2_2","hp3_2","hp4_2","hp5_2",
 
 # Write csv for quicker future parsing
 #fwrite(frames,paste0("J:/eagle/frames/",ss_id,".csv"))
-fwrite(frames,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/frames/",ss_id,".csv"))
+#fwrite(frames,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/frames/",ss_id,".csv"))

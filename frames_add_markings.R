@@ -12,9 +12,11 @@ gameid<-"2016042307"
 # frames<-fread(paste0("J:/eagle/frames/",gameid,".csv"))
 # js<-fromJSON(paste0("J:/eagle/markings/",gameid,".json"))
 path<-"C:/Users/brocatoj/Documents/Basketball/Tracking/"
-frames<-fread(paste0(path,"frames/",gameid,".csv"))
 js<-fromJSON(paste0(path,"markings/",gameid,".json"))
-players<-fread(paste0(path,"meta/players.csv"))
+players<-fromJSON(paste0(path,"meta/players_plus.json"))
+setDT(players)
+#players<-fread(paste0(path,"meta/players_plus.csv"))
+frames<-fread(paste0(path,"frames/",gameid,".csv"))
 
 # Add markings
     # From shots
@@ -23,9 +25,9 @@ players<-fread(paste0(path,"meta/players.csv"))
     blocks<-blocks[,frame_idx:=frame_idx+1]
     blocks[,event:="BLK"]
     blocks<-blocks[,.(period,frame_idx,event,player_id,dplayer_id)]
-    shots<-shots[sfl_fgx==FALSE]
-    shots[,event:=ifelse(made==TRUE,ifelse(is_three==TRUE,"3PM","2PM"),
-                        ifelse(is_three==TRUE,"3PX","2PX"))]
+    shots[,event:=ifelse(sfl_fgx==T,"SF",
+                    ifelse(made==TRUE,ifelse(is_three==TRUE,"3PM","2PM"),
+                        ifelse(is_three==TRUE,"3PX","2PX")))]
     shots<-shots[,.(period,frame_idx,event,player_id,dplayer_id)]
     markings<-rbind(shots,blocks)
     setnames(markings,"frame_idx","frame")
@@ -50,7 +52,7 @@ players<-fread(paste0(path,"meta/players.csv"))
 
     # From fouls
     fouls<-as.data.table(js$fouls)
-    fouls[,event:=ifelse(shooting==TRUE,"SF","FOUL")]
+    fouls[,event:="FOUL"]
     fouls<-fouls[,.(period,frame,event,fouled,fouler)]
     setnames(fouls,c("fouled","fouler"),c("player_id","dplayer_id"))
     
@@ -97,6 +99,7 @@ markings[,order:=ifelse(event%in%c("DRIB","POSS","PASS"),2,1)]
 markings<-markings[order(order)]
 markings<-distinct(markings,mid,.keep_all=T)
 markings<-markings[,.(mid,event,player_id,dplayer_id)]
+markings<-markings[,lapply(.SD, as.character), by=mid]
 
 # Merge markings onto frames
 frames[,mid:=paste0(period,"_",idx)]
@@ -104,4 +107,4 @@ frames<-left_join(frames,markings,by="mid");setDT(frames)
 frames[,home_team:=NULL][,away_team:=NULL][,mid:=NULL]
 
 # Remove unnecessary dataframes
-rm(list= ls()[!(ls() %in% c('frames','markings'))])
+rm(list= ls()[!(ls() %in% c('frames','markings','js','players'))])

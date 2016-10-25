@@ -1,0 +1,25 @@
+shots<-as.data.table(js$shots)
+shots<-shots[,.(frame_idx,period,game_clock,player_id,dplayer_id,dplayer1_id,
+                dplayer2_id)]
+shots<-shots[order(period,-(game_clock))]
+shots[,game_clock:=round(game_clock,0)]
+shots[,game_clock:=paste0(floor(game_clock/60),":",
+                         ifelse(nchar(as.character(game_clock%%60))==1,
+                                paste0(0,as.character(game_clock%%60)),
+                                paste0(as.character(game_clock%%60))))]
+shots<-shots[,lapply(.SD, as.character)]
+ap<-players[!is.na(id)]
+ap<-ap[,.(id,james_id)]
+names(ap)<-c("player_id","shooter")
+shots<-left_join(shots,ap,by="player_id")
+names(ap)<-c("dplayer_id","defender1")
+shots<-left_join(shots,ap,by="dplayer_id")
+names(ap)<-c("dplayer1_id","defender2")
+shots<-left_join(shots,ap,by="dplayer1_id")
+names(ap)<-c("dplayer2_id","defender3")
+shots<-left_join(shots,ap,by="dplayer2_id")
+shots<-select(shots,frame_idx:game_clock,shooter:defender3)
+rm(ap)
+setDT(shots)
+shots[,contest1:=""][,contest2:=""][,contest3:=""]
+shots[,failed_attempt1:=""][,failed_attempt2:=""][,failed_attempt3:=""]
