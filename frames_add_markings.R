@@ -13,9 +13,10 @@ gameid<-"2016042307"
 # js<-fromJSON(paste0("J:/eagle/markings/",gameid,".json"))
 path<-"C:/Users/brocatoj/Documents/Basketball/Tracking/"
 js<-fromJSON(paste0(path,"markings/",gameid,".json"))
-players<-fromJSON(paste0(path,"meta/players_plus.json"))
-setDT(players)
-#players<-fread(paste0(path,"meta/players_plus.csv"))
+#players<-fromJSON(paste0(path,"meta/players_plus.json"))
+#setDT(players)
+players<-fread(paste0(path,"meta/players_plus.csv"))
+#players[,id:=substr(id,1,14)]
 frames<-fread(paste0(path,"frames/",gameid,".csv"))
 
 # Add markings
@@ -99,7 +100,8 @@ markings[,order:=ifelse(event%in%c("DRIB","POSS","PASS"),2,1)]
 markings<-markings[order(order)]
 markings<-distinct(markings,mid,.keep_all=T)
 markings<-markings[,.(mid,event,player_id,dplayer_id)]
-markings<-markings[,lapply(.SD, as.character), by=mid]
+# markings[,player_id:=as.numeric(substr(player_id,1,14))]
+# markings[,dplayer_id:=as.numeric(substr(dplayer_id,1,14))]
 
 # Merge markings onto frames
 frames[,mid:=paste0(period,"_",idx)]

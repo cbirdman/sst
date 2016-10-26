@@ -13,9 +13,12 @@ frames[,def_type:=
   # If there is a missed shot or shooting foul
   ifelse(event%in%c("2PM","2PX","3PM","3PX","SF")&is.na(def_type)&
   #And the defender is different from who it was a short time ago,
-  defender!=shift(defender,25)|defender!=shift(defender,15)|defender!=shift(defender,10),
+  (defender!=shift(defender,25)|defender!=shift(defender,15)|defender!=shift(defender,10)),
+  "defhe",def_type)]
+frames[,def_type:=
+  ifelse(def_type=="defhe"&
     # If it's close to the hoop, it's defhe, if not it's defclhe
-    ifelse(((s_x<17&s_y>10&s_y<40)|(s_x>77&s_y>10&s_y<40)),"defhe","defclhe"),def_type)]
+    !((s_x<17&s_y>10&s_y<40)|(s_x>77&s_y>10&s_y<40)),"defclhe",def_type)]
 
 # Closeoust defense: when a player closes out to defend a shot
 frames[,def_type:=
@@ -55,8 +58,10 @@ frames[,def_type:=
   # If there is a missed shot or shooting foul
   ifelse(event%in%c("2PM","2PX","3PM","3PX","SF")&is.na(def_type)&
   # And the shooter is 10+ feet and it's away from the hoop it's defcl, otherwise it's def
-  pdist(d_x,s_x,d_y,s_y)>10,"defcl",
-    ifelse(is.na(def_type),"def",def_type))]
+  pdist(d_x,s_x,d_y,s_y)>10,"defcl",def_type)]
+frames[,def_type:=
+  ifelse(event%in%c("2PM","2PX","3PM","3PX","SF")&is.na(def_type),
+         "def",def_type)]
 
 # Update shots markings
 shots<-as.data.table(js$shots)
@@ -67,16 +72,16 @@ dt[,pf:=paste0(period,"_",idx)]
 dt<-dt[,.(pf,def_type)]
 shots<-left_join(shots,dt,by="pf");setDT(shots)
 shots<-shots[,c(1:67,69),with=F]
-# shots<-toJSON(shots)
-# shots<-paste0("{shots_plus: ",shots,",")
-# 
-# # Remove unnecessary dataframes
-# rm(list= ls()[!(ls() %in% c('frames','markings','js','shots','pdist','players'))])
-shot<-shots[,.(period,game_clock,dplayer_id,def_type)]
-shot<-arrange(shot,period,desc(game_clock))
-shot<-shot%>%mutate(TL=paste(floor(game_clock/60),".",game_clock%%60,sep=""))
-shot$dplayer_id<-as.character(shot$dplayer_id)
-ap<-players[,.(id,james_id)]
-setnames(ap,c("dplayer_id","player"))
-shot<-left_join(shot,ap,by="dplayer_id")
-shot<-select(shot,period,TL,player,def_type)
+shots<-toJSON(shots)
+markings_plus<-paste0('{"shots_plus": ',shots,",")
+
+# Remove unnecessary dataframes
+rm(list= ls()[!(ls() %in% c('frames','markings','js','markings_plus','pdist','players'))])
+# shot<-shots[,.(period,game_clock,dplayer_id,def_type)]
+# shot<-arrange(shot,period,desc(game_clock))
+# shot<-shot%>%mutate(TL=paste(floor(game_clock/60),".",game_clock%%60,sep=""))
+# shot$dplayer_id<-as.character(shot$dplayer_id)
+# ap<-players[,.(id,james_id)]
+# setnames(ap,c("dplayer_id","player"))
+# shot<-left_join(shot,ap,by="dplayer_id")
+# shot<-select(shot,period,TL,player,def_type)
