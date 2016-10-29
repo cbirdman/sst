@@ -37,6 +37,8 @@ players<-extra[players]
 players<-players[,c(1,13:15,2:6,16:23,7:12),with=F]
 players<-players[order(-to_year,team,-pos_id)]
 players[,lcard_name:=paste0(substr(first,1,1),".",last)]
+write.csv(players,"C:/Users/brocatoj/Documents/Basketball/Tracking/meta/players_plus.csv",
+          row.names=F)
 
 # Extract missing info from nba.com
 missing<-players[is.na(ht)]
@@ -50,6 +52,7 @@ for (i in missing$ids_id){
 head<-p$resultSets$headers[[1]]
 setnames(nba_ext,head)
 nba_ext<-nba_ext[,.(PERSON_ID,BIRTHDATE,HEIGHT,WEIGHT,POSITION)]
+
 nba_ext[,c("feet", "inches"):=tstrsplit(HEIGHT,"-",fixed=T)]
 nba_ext[,HT:=as.numeric(feet)*12+as.numeric(inches)]
 nba_ext[,BDATE:=as.Date(substr(BIRTHDATE,1,10))]

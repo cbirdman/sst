@@ -82,7 +82,7 @@ setnames(de,c("idx","bh","de","detype"),
          c("frame","ballhandler","defender","error_type"))
 
 de<-toJSON(de)
-markings_plus<-paste0(markings_plus,'"defensive_errors": ',de,"}")
+markings_plus<-paste0(markings_plus,'"defensive_errors": ',de,",")
 
 # de[,TL:=paste(floor(gameClock/60),".",gameClock%%60,sep="")]
 # ap<-players[,.(id,james_id)]
