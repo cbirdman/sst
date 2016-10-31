@@ -68,4 +68,4 @@ bst[,player_id:=ifelse(pus==0,pup,pus)]
 bst<-bst[,.(game_code,idx,period,gameClock,player_id,bhd,ball_stop_type)]
 setnames(bst,c("idx","bhd"),c("frame","dplayer_id"))
 bst<-toJSON(bst)
-markings_plus<-paste0(markings_plus,'"spacing": ',bst,"}")
+markings_plus<-paste0(markings_plus,'"spacing": ',bst,",")

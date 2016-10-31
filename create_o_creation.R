@@ -1,5 +1,5 @@
 # TAST: define
-frames[,tast:=
+frames2[,tast:=
            # If there was a pass/ast in the last 60
            ifelse(Reduce("|", shift(event=="PASS",1:60))&
                       # And the result is a fga or shooting foul
@@ -10,7 +10,7 @@ frames[,tast:=
                   passer,0)]
 
 # OC: define
-frames[,oc:=
+frames2[,oc:=
            # If there is an assist within 6 seconds
            ifelse(Reduce("|",shift(tast!=0,1:150,type="lead"))&
                       # And there is a pass within a second
@@ -38,36 +38,28 @@ frames[,oc:=
                       bh,0),0)]
 
 # OC: remove repeats
-frames[,oc:=ifelse(Reduce("|",shift(oc!=0,1:150)),0,oc),]
+frames2[,oc:=ifelse(Reduce("|",shift(oc!=0,1:150)),0,oc),]
 
 # OC: types
-frames[,octype:=ifelse(oc!=0,
+frames2[,octype:=ifelse(oc!=0,
                     ifelse(Reduce("|",shift(event=="SCR",0:75))|
                            Reduce("|",shift(event=="SCR",0:50,type="lead")),"poc","oc"),0)]
 
-# TAST: Change to the pass not the shot
-frames[,tast1:=
-           ifelse(event=="PASS"&
-                      Reduce("|", shift(tast!=0,1:60,type="lead"))&
-                      !Reduce("|",shift(event%in%"PASS",1:60,type="lead")),
-                  shift(bh),0)]
-frames<-frames[,c(1:96,98:100),with=F]
-setnames(frames,"tast1","tast")
-
 # Update passes markings
-oc<-frames[oc!=0|tast!=0]
+oc<-frames2[oc!=0|tast!=0|event=="PASS",.(period,idx,gameClock,event,tast,octype)]
+oc[,tast:=shift(tast,type="lead",fill=0)][,octype:=shift(octype,fill=0)]
+oc<-oc[event=="PASS"]
+oc[,tast:=ifelse(tast==0,FALSE,TRUE)][,octype:=ifelse(octype==0,FALSE,TRUE)]
 oc<-oc[,.(period,idx,gameClock,tast,octype)]
-oc[,tast:=ifelse(tast==0,FALSE,TRUE)][,octype:=ifelse(octype==0,NA,octype)]
 setnames(oc,c("period","frame","gameClock","true_assist","opportunity_created"))
-oc[,pid:=paste0(period,"_",frame)]
+oc[,mid:=paste0(period,"_",frame)]
 passes<-as.data.table(js$passes)
-passes[,pid:=paste0(period,"_",frame)]
-passes2<-passes[,.(pid,passer)]
-oc<-full_join(oc,passes2,by="pid");setDT(oc)
-oc[,period:=as.numeric(substr(pid,1,1))][,frame:=as.numeric(substr(pid,3,10))]
-oc<-oc[order(period,frame)]
-oc[,opportunity_created:=shift(opportunity_created)]
-oc<-oc[,.(pid,true_assist,opportunity_created)]
-passes<-left_join(passes,oc,by="pid")
+passes[,mid:=paste0(period,"_",frame)]
+passes<-left_join(passes,oc,by="mid")
 passes<-toJSON(passes)
 markings_plus<-paste0(markings_plus,'"passes": ',passes,",")
+
+# Add markings to frames
+#oc2<-oc2[,.(mid,true_assist,opportunity_created)]
+#setnames(oc2,c("true_assist","opportunity_created"),c("tast","oc"))
+#frames<-left_join(frames,oc2,by="mid");setDT(frames)

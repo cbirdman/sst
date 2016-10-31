@@ -26,4 +26,4 @@ shots[,failed_attempt1:=""][,failed_attempt2:=""][,failed_attempt3:=""]
 games<-fread(paste0(path,"meta/games.csv"))
 games<-games[id==gameid]
 game_name<-games$game
-write.csv(shots,paste0(path,"/intern_in/",game_name,".csv"),row.names=F)
+write.csv(shots,paste0(path,"/intern/in/",game_name,".csv"),row.names=F)

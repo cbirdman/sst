@@ -1,6 +1,6 @@
-frames[,oc:=ifelse(is.na(oc),0,oc)]
+frames2[,oc:=ifelse(is.na(oc),0,oc)]
 # DE: define
-frames[,de:=
+frames2[,de:=
   # If there is an oc
   ifelse(oc!=0,
     # If there isn't a bb,bbcl,hn,bit, or bbc within the last 4 or next 2 secs
@@ -28,61 +28,62 @@ frames[,de:=
         ifelse(defender!=shift(defender,15),paste("de",shift(defender,15)),
         ifelse(defender!=shift(defender,10),paste("de",shift(defender,10)),0))))),0))]
 
-frames[,de:=ifelse(is.na(de),0,de)]
-frames[,hn2:=ifelse(event=="SCR"&Reduce("|",shift(de=="hn 0",1:150,type="lead")),
+frames2[,de:=ifelse(is.na(de),0,de)]
+frames2[,hn2:=ifelse(event=="SCR"&Reduce("|",shift(de=="hn 0",1:150,type="lead")),
                     shift(bhd,10),NA)]
-frames[,hn2:=ifelse(idx==1,0,hn2)]
-frames[,hn2:=na.locf(hn2)]
-frames[,de:=ifelse(de=="hn 0",paste("hn",hn2),de)]
-frames[,hn2:=NULL]
+frames2[,hn2:=ifelse(idx==1,0,hn2)]
+frames2[,hn2:=na.locf(hn2)]
+frames2[,de:=ifelse(de=="hn 0",paste("hn",hn2),de)]
+frames2[,hn2:=NULL]
 
 
 # DE: remove repeats
-frames[,de:=ifelse(Reduce("|",shift(!is.na(de)&de!=0,1:150)),0,de)]
+frames2[,de:=ifelse(Reduce("|",shift(!is.na(de)&de!=0,1:150)),0,de)]
 
 
 # Merge defensive errors
-frames[,bit:=ifelse(is.na(bit),0,bit)]
-frames[,detype:=substr(de,1,2)]
-frames[,de:=substr(de,4,nchar(de))]
-frames$de<-as.numeric(frames$de)
-frames[,de:=ifelse(is.na(de),0,de)]
-frames[,de:=bb+hn+bbcl+bbc+de]
-frames[,detype:=ifelse(detype!="0",detype,
+frames2[,bit:=ifelse(is.na(bit),0,bit)]
+frames2[,detype:=substr(de,1,2)]
+frames2[,de:=substr(de,4,nchar(de))]
+frames2$de<-as.numeric(frames2$de)
+frames2[,de:=ifelse(is.na(de),0,de)]
+frames2[,de:=bb+hn+bbcl+bbc+de]
+frames2[,detype:=ifelse(detype!="0",detype,
                        ifelse(bb!=0,"bb",
                               ifelse(hn!=0,"shn",
                                      ifelse(bbcl!=0,"bbcl",
                                             ifelse(bbc!=0,"bbc",NA)))))]
-frames[,detype:=gsub("de","hn",detype)]
-frames<-frames[,c(1:91,95:101),with=F]
+frames2[,detype:=gsub("de","hn",detype)]
+frames2<-frames2[,c(1:91,95:101),with=F]
 
 # Adjust DE for recovery
-frames[,fdefender:=ifelse(idx==nrow(frames),0,NA)]
-frames[,fdefender:=ifelse(def_type%in%c("defhe","defclhe"),defender,fdefender)]
-frames[,fdefender:=na.locf(fdefender,fromLast=T)]
-frames[,fdefender:=ifelse(Reduce("|",shift(def_type%in%c("defhe","defclhe"),0:60,
+frames2[,fdefender:=ifelse(idx==nrow(frames2),0,NA)]
+frames2[,fdefender:=ifelse(def_type%in%c("defhe","defclhe"),defender,fdefender)]
+frames2[,fdefender:=na.locf(fdefender,fromLast=T)]
+frames2[,fdefender:=ifelse(Reduce("|",shift(def_type%in%c("defhe","defclhe"),0:60,
                                            type="lead")),fdefender,0)]
-frames[,def_type:=ifelse(is.na(def_type),0,def_type)]
+frames2[,def_type:=ifelse(is.na(def_type),0,def_type)]
 dtypes<-c("defti","defhe","defclhe","defcl","defre","defna")
-frames[,de:=
+frames2[,de:=
            #If def_type isn't "def"
            ifelse(Reduce("|",shift(def_type%in%dtypes,0:150,type="lead"))&
-                      # And there wasn't an ORB in the last 40 frames
+                      # And there wasn't an ORB in the last 40 frames2
                       !Reduce("|",shift(event%in%"ORB",1:40))&
                       # And the error isn't attributed to the help defender
                       fdefender!=de,
                   # Then the error stands. Otherwise it doesn't.
                   de,0)]
-frames<-frames[,(1:98),with=F]
+frames2<-frames2[,(1:98),with=F]
 
 # Create DE Markings
-de<-frames[de!=0]
+de<-frames2[de!=0]
 de<-de[,.(game_code,idx,period,gameClock,bh,de,detype)]
 setnames(de,c("idx","bh","de","detype"),
          c("frame","ballhandler","defender","error_type"))
 
 de<-toJSON(de)
 markings_plus<-paste0(markings_plus,'"defensive_errors": ',de,",")
+rm(frames2)
 
 # de[,TL:=paste(floor(gameClock/60),".",gameClock%%60,sep="")]
 # ap<-players[,.(id,james_id)]
