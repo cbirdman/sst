@@ -94,7 +94,7 @@ for(i in c("ap1","ap2","ap3","ap4","ap5","hp1","hp2","hp3","hp4","hp5")){
 }
 
 # Determine what side of the court the goal is on
-frames[,pend:=ifelse(event%in%c("FTM","FTX","2PM","2PX","3PM","3PX","TO"),
-                ifelse(pdist(shift(bh_x),4,shift(bh_y),25)<
-                       pdist(shift(bh_x),90,shift(bh_y),25),1,0),NA)]
+frames[,pend:=ifelse(event%in%c("SF","2PM","3PM","DRB","TO"),
+                ifelse(pdist(shift(ball_x),4,shift(ball_y),25)<
+                       pdist(shift(ball_x),90,shift(ball_y),25),1,0),NA)]
 frames[,pend:=na.locf(pend,fromLast=T)]

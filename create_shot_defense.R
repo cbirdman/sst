@@ -1,5 +1,8 @@
 frames2<-frames[Reduce("|",shift(event%in%c("2PM","2PX","3PM","3PX","SF"),0:151,type="lead"))|
-                Reduce("|",shift(event%in%c("2PM","2PX","3PM","3PX","SF"),0:151))]
+                Reduce("|",shift(event%in%c("2PM","2PX","3PM","3PX","SF"),0:151))|
+                Reduce("|",shift(ball_x>49&bh_x<58,0:51,type="lead"))|
+                Reduce("|",shift(ball_x>36&bh_x<45,0:51,type="lead"))]
+
 
 # Remove event NAs
 frames2[,event:=ifelse(is.na(event),0,event)]
@@ -77,10 +80,6 @@ shots<-left_join(shots,dt,by="mid");setDT(shots)
 shots<-select(shots,-mid)
 shots<-toJSON(shots)
 markings_plus<-paste0('{"shots_plus": ',shots,",")
-
-# Add markings to frames
-# frames2[,mid:=paste0(period,"_",idx)]
-# frames2<-left_join(frames2,dt,by="mid");setDT(frames2)
 
 # Remove unnecessary dataframes2
 rm(list= ls()[!(ls() %in% c('frames','markings','js','markings_plus','pdist',

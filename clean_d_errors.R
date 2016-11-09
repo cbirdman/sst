@@ -4,8 +4,8 @@ frames2[,de:=
   # If there is an oc
   ifelse(oc!=0,
     # If there isn't a bb,bbcl,hn,bit, or bbc within the last 4 or next 2 secs
-    ifelse(Reduce("|",shift(bb!=0|bbcl!=0|hn!=0|bit!=0|bbc!=0,1:120))|
-           Reduce("|",shift(bb!=0|hn!=0|bit!=0|bbc!=0,1:60,type="lead")),0,
+    ifelse(Reduce("|",shift(bb!=0|bbcl!=0|hn!=0|bbc!=0,1:120))|
+           Reduce("|",shift(bb!=0|hn!=0|bbc!=0,1:60,type="lead")),0,
     # If there isn't a screen in the last 4 or next 2 secs
     ifelse(Reduce("|",shift(event=="SCR",1:120))|
            Reduce("|",shift(event=="SCR",1:60,type="lead"))|
@@ -16,8 +16,8 @@ frames2[,de:=
     # If the defender on the shot is helping
     ifelse(def_type%in%c("defhe","defclhe"),
       # If there isn't already a defensive error
-      ifelse(Reduce("|",shift(bb!=0|bbcl!=0|hn!=0|bit!=0|bbc!=0,1:120))|
-             Reduce("|",shift(bb!=0|hn!=0|bit!=0|bbc!=0,1:60,type="lead")),0,
+      ifelse(Reduce("|",shift(bb!=0|bbcl!=0|hn!=0|bbc!=0,1:120))|
+             Reduce("|",shift(bb!=0|hn!=0|bbc!=0,1:60,type="lead")),0,
     # If there's a screen
     ifelse(Reduce("|",shift(event=="SCR",1:120))|
            Reduce("|",shift(event=="SCR",1:60,type="lead")),
@@ -42,7 +42,6 @@ frames2[,de:=ifelse(Reduce("|",shift(!is.na(de)&de!=0,1:150)),0,de)]
 
 
 # Merge defensive errors
-frames2[,bit:=ifelse(is.na(bit),0,bit)]
 frames2[,detype:=substr(de,1,2)]
 frames2[,de:=substr(de,4,nchar(de))]
 frames2$de<-as.numeric(frames2$de)
@@ -54,7 +53,7 @@ frames2[,detype:=ifelse(detype!="0",detype,
                                      ifelse(bbcl!=0,"bbcl",
                                             ifelse(bbc!=0,"bbc",NA)))))]
 frames2[,detype:=gsub("de","hn",detype)]
-frames2<-frames2[,c(1:91,95:101),with=F]
+frames2<-frames2[,c(1:91,94:100),with=F]
 
 # Adjust DE for recovery
 frames2[,fdefender:=ifelse(idx==nrow(frames2),0,NA)]
@@ -77,18 +76,34 @@ frames2<-frames2[,(1:98),with=F]
 
 # Create DE Markings
 de<-frames2[de!=0]
-de<-de[,.(game_code,idx,period,gameClock,bh,de,detype)]
+de<-de[,.(game_code,idx,period,gameClock,detype,de,bh)]
+de[,defender2:=NA][,defender3:=NA][,defender4:=NA][,defender5:=NA]
 setnames(de,c("idx","bh","de","detype"),
          c("frame","ballhandler","defender","error_type"))
+de<-de[,.(game_code,frame,period,gameClock,error_type,defender,defender2,defender3,
+          defender4,defender5,ballhandler)]
+# bit<-frames2[bit!=0]
+# bit<-bit[,.(game_code,idx,period,gameClock,bit,bh)]
+# bit[,bit:=gsub("0 ","",bit)]
+# bit[,c("bit","defender2","defender3","defender4","defender5"):=tstrsplit(bit," ")]
+# bit[,defender3:=ifelse(defender3==bit,NA,defender3)]
+# bit[,defender4:=ifelse(defender4==defender2,NA,defender4)]
+# bit[,defender5:=ifelse(defender5==defender3,NA,defender5)]
+# setnames(bit,c("idx","bit","bh"),c("frame","defender","ballhandler"))
+# bit[,error_type:="bit"]
+# bit<-bit[,.(game_code,frame,period,gameClock,error_type,defender,defender2,
+#             defender3,defender4,defender5,ballhandler)]
+#de<-rbind(de,bit)
+de<-arrange(de,period,frame)
 
-de<-toJSON(de)
-markings_plus<-paste0(markings_plus,'"defensive_errors": ',de,",")
+de2<-toJSON(de)
+markings_plus<-paste0(markings_plus,'"defensive_errors": ',de2,",")
 rm(frames2)
 
-# de[,TL:=paste(floor(gameClock/60),".",gameClock%%60,sep="")]
-# ap<-players[,.(id,james_id)]
-# setnames(ap,c("defender","player"))
-# ap[,defender:=substr(defender,1,14)]
-# de[,defender:=substr(defender,1,14)]
-# de<-left_join(de,ap,by="defender")
-# de<-select(de,period,TL,player,error_type)
+setDT(de)
+de[,TL:=paste(floor(gameClock/60),".",gameClock%%60,sep="")]
+ap<-players[,.(ids_id,james_id)]
+setnames(ap,c("defender","player"))
+de$defender<-as.character(de$defender)
+de<-left_join(de,ap,by="defender")
+de<-select(de,period,TL,player,error_type)

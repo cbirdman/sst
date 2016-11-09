@@ -9,8 +9,8 @@ library(data.table)
 
 # gameid<-readline('Enter Game Code: (e.g., 2016061909) ')
 # location<-readline('At Work? (Y/N) ')
-gameid<-"2016042306"
-location<-"N"
+#gameid<-"2016042306"
+#location<-"N"
 
 # Import necessary data
 games<-fread("C:/Users/brocatoj/Documents/Basketball/Tracking/meta/games.csv")
@@ -69,11 +69,11 @@ frames<-frames[,c(62,60,61,2,1,63:64,7:9,11:13,16:18,21:23,26:28,31:33,36:38,
                   41:43,46:48,51:53,56:58),with=F]
 setnames(frames,c("time","game-clock"),c("utcTime","gameClock"))
 
-# MAP SS IDs ONTO FRAMES
+# MAP NBA IDs ONTO FRAMES
 for(i in c("hp1","hp2","hp3","hp4","hp5","ap1","ap2","ap3","ap4","ap5")){
-    ids<-players[,.(stats_id,id)]
-    ids$stats_id<-as.character(ids$stats_id)
+    ids<-players[,.(id,stats_id,ids_id)]
     ids<-ids[!is.na(id)]
+    ids<-ids[,.(stats_id,ids_id)]
     setnames(ids,c(i,paste0(i,"_2")))
     frames<-left_join(frames,ids,by=i)
 }

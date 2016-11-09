@@ -23,7 +23,7 @@ frames[,pus:=
         # And there isn't a shot in the next second
         !Reduce("|",shift(event%in%c("2PM","2PX","3PM","3PX","SF"),0:60,type="lead"))&
         # And the ball is within 24 feet of the goal
-        (pend==1&bh_x<28|pend!=1&bh_x>66)&
+        ((pend==1&bh_x<28)|(pend!=1&bh_x>66))&
         #And the defender is over 8 feet away
         pdist(bh_x,bhd_x,bh_y,bhd_y)>12,
         # Then the ballhandler passed up the shot. Otherwise he didn't
@@ -59,7 +59,7 @@ frames[,pup:=
 # PUP: only keep occurences that lasted 2+ seconds
 frames[,pup:=ifelse(Reduce("&",shift(pup!=0,1:50)),pup,0),]
 # PUP: remove repeats
-frames[,pup:=ifelse(Reduce("|",shift(pup!=0,1:60)),0,pup),]
+frames[,pup:=ifelse(Reduce("|",shift(pup!=0,1:75)),0,pup),]
 
 # Create Markings
 bst<-frames[pup!=0|pus!=0]

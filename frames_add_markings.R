@@ -13,11 +13,9 @@ gameid<-"2016042307"
 # js<-fromJSON(paste0("J:/eagle/markings/",gameid,".json"))
 path<-"C:/Users/brocatoj/Documents/Basketball/Tracking/"
 js<-fromJSON(paste0(path,"markings/",gameid,".json"))
-#players<-fromJSON(paste0(path,"meta/players_plus.json"))
-#setDT(players)
 players<-fread(paste0(path,"meta/players_plus.csv"))
-#players[,id:=substr(id,1,14)]
 frames<-fread(paste0(path,"frames/",gameid,".csv"))
+
 
 # Add markings
     # From shots
@@ -86,27 +84,48 @@ frames<-fread(paste0(path,"frames/",gameid,".csv"))
     drives<-drives[,.(period,frame,event,bhr,defender)]
     setnames(drives,c("bhr","defender"),c("player_id","dplayer_id"))
     
+    # From transitions
+    fb<-as.data.table(js$transitions)
+    fb<-fb[,frame:=frame-1]
+    fb[,event:="FB"]
+    fb<-fb[,.(period,frame,event,off_player1,def_player1)]
+    setnames(fb,c("off_player1","def_player1"),c("player_id","dplayer_id"))
+    
     # From pbp
     other<-as.data.table(js$pbp)
-    other<-other[event%in%c("SUB","TMO","JMP","SPD","EPD")]
-    other[,frame:=substr(possession_id,13,50)][,player_id:=NA][,dplayer_id:=NA]
+    other[,frame:=ifelse(event=="TO",substr(shift(possession_id,type="lead"),13,50),
+                  substr(possession_id,13,50))][,player_id:=NA][,dplayer_id:=NA]
+    other<-other[event%in%c("TO","SUB","TMO","JMP","SPD","EPD")]
     other<-other[,.(period,frame,event,player_id,dplayer_id)]
 
 # Clean markings
-markings<-rbind(markings,passes,touches,dribbles,fouls,rebounds,picks,drives,other)
+markings<-rbind(markings,passes,touches,dribbles,fouls,rebounds,picks,drives,fb,other)
 markings<-markings[order(period, frame)]
 markings[,mid:=paste0(period,"_",frame)]
 markings[,order:=ifelse(event%in%c("DRIB","POSS","PASS"),2,1)]
 markings<-markings[order(order)]
 markings<-distinct(markings,mid,.keep_all=T)
 markings<-markings[,.(mid,event,player_id,dplayer_id)]
-# markings[,player_id:=as.numeric(substr(player_id,1,14))]
-# markings[,dplayer_id:=as.numeric(substr(dplayer_id,1,14))]
+
+# # Map NBA ids to markings
+ids<-players[,.(id,ids_id)]
+ids<-ids[!is.na(id)]
+setnames(ids,"id","player_id")
+markings<-markings[,lapply(.SD, as.character)]
+markings<-left_join(markings,ids,by="player_id");setDT(markings)
+markings<-select(markings,-player_id)
+setnames(markings,"ids_id","player_id")
+setnames(ids,"player_id","dplayer_id")
+markings<-left_join(markings,ids,by="dplayer_id");setDT(markings)
+markings<-select(markings,-dplayer_id)
+setnames(markings,"ids_id","dplayer_id")
+markings$player_id<-as.numeric(markings$player_id)
+markings$dplayer_id<-as.numeric(markings$dplayer_id)
 
 # Merge markings onto frames
 frames[,mid:=paste0(period,"_",idx)]
 frames<-left_join(frames,markings,by="mid");setDT(frames)
-frames[,home_team:=NULL][,away_team:=NULL][,mid:=NULL]
+frames<-select(frames,-home_team,-away_team,-mid)
 
 # Remove unnecessary dataframes
 rm(list= ls()[!(ls() %in% c('frames','markings','js','players'))])

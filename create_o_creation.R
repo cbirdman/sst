@@ -33,7 +33,7 @@ frames2[,oc:=
                                   (pdist(bh_x,ap3_x,bh_y,ap3_y)<8)+(pdist(bh_x,ap4_x,bh_y,ap4_y)<8)+
                                   (pdist(bh_x,ap5_x,bh_y,ap5_y)<8))>=2)|
                           # Or bh blew by his defender
-                          bb!=0|bbc!=0|bit!=0,
+                          bb!=0|bbc!=0,
                       # Then bh is credited with an oc. Otherwise he isn't.
                       bh,0),0)]
 
@@ -49,13 +49,18 @@ frames2[,octype:=ifelse(oc!=0,
 oc<-frames2[oc!=0|tast!=0|event=="PASS",.(period,idx,gameClock,event,tast,octype)]
 oc[,tast:=shift(tast,type="lead",fill=0)][,octype:=shift(octype,fill=0)]
 oc<-oc[event=="PASS"]
-oc[,tast:=ifelse(tast==0,FALSE,TRUE)][,octype:=ifelse(octype==0,FALSE,TRUE)]
-oc<-oc[,.(period,idx,gameClock,tast,octype)]
-setnames(oc,c("period","frame","gameClock","true_assist","opportunity_created"))
-oc[,mid:=paste0(period,"_",frame)]
+oc[,tast:=ifelse(tast==0|is.na(tast),FALSE,TRUE)]
+oc[,from_pick:=ifelse(octype=="poc",T,ifelse(octype=="oc",F,NA))]
+oc[,octype:=ifelse(octype==0|is.na(octype),FALSE,TRUE)]
+oc[,mid:=paste0(period,"_",idx)]
+oc<-oc[,.(mid,tast,octype,from_pick)]
+setnames(oc,c("tast","octype"),c("true_assist","opportunity_created"))
 passes<-as.data.table(js$passes)
 passes[,mid:=paste0(period,"_",frame)]
 passes<-left_join(passes,oc,by="mid")
+passes<-passes %>%
+    mutate(true_assist=ifelse(is.na(true_assist),F,true_assist),
+           opportunity_created=ifelse(is.na(opportunity_created),F,opportunity_created))
 passes<-toJSON(passes)
 markings_plus<-paste0(markings_plus,'"passes": ',passes,",")
 

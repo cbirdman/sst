@@ -1,5 +1,4 @@
 # ...
-#gameid<-"2016042307"
 path<-"C:/Users/brocatoj/Documents/Basketball/Tracking/"
 
 js<-fromJSON(paste0(path,"markings/",gameid,".json"))
@@ -48,14 +47,14 @@ for(i in c("V1","V2","V3","V4","V5")){
 
 lineup$end_game_clock<-as.numeric(lineup$end_game_clock)
 
-half1<-as.data.table(c("1_1", "1_2", "1_3", "1_4", "1_5", "1_6", 
+half1<-as.data.table(c("1_1", "1_2", "1_3", "1_4", "1_5", "1_6",
                       "1_7", "1_8", "1_9", "1_10", "1_11", "1_12",
-                      "2_1", "2_2", "2_3", "2_4", "2_5", "2_6", 
+                      "2_1", "2_2", "2_3", "2_4", "2_5", "2_6",
                       "2_7", "2_8", "2_9", "2_10", "2_11", "2_12"))
 setnames(half1,"time")
-half2<-as.data.table(c("3_1", "3_2", "3_3", "3_4", "3_5", "3_6", 
+half2<-as.data.table(c("3_1", "3_2", "3_3", "3_4", "3_5", "3_6",
                       "3_7", "3_8", "3_9", "3_10", "3_11", "3_12",
-                      "4_1", "4_2", "4_3", "4_4", "4_5", "4_6", 
+                      "4_1", "4_2", "4_3", "4_4", "4_5", "4_6",
                       "4_7", "4_8", "4_9", "4_10", "4_11", "4_12"))
 setnames(half2,"time")
 
@@ -108,3 +107,6 @@ write.csv(dfList$away_1,paste0(path,"lineup_sheets/",games_current$id,"_",
                                games_current$away,"_half1.csv"),row.names=F)
 write.csv(dfList$away_2,paste0(path,"lineup_sheets/",games_current$id,"_",
                                games_current$away,"_half2.csv"),row.names=F)
+
+rm(away,away_1,away_2,games_current,half1,half2,home,home_1,home_2,lineup,
+   players_lc,players_pos)

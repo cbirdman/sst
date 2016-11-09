@@ -104,4 +104,4 @@ for(i in 0:4){
 }
 #rebounds<-select(rebounds,-pid,-box,-crash,-leak,-bw,-ora)
 rebounds<-toJSON(rebounds)
-markings_plus<-paste0(markings_plus,'"rebounds": ',rebounds,"}")
+markings_plus<-paste0(markings_plus,'"rebounds_plus": ',rebounds,"}")
