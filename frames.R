@@ -9,7 +9,7 @@ library(data.table)
 
 # gameid<-readline('Enter Game Code: (e.g., 2016061909) ')
 # location<-readline('At Work? (Y/N) ')
-#gameid<-"2016042306"
+#gameid<-"2016103010"
 #location<-"N"
 
 # Import necessary data
@@ -87,5 +87,5 @@ setnames(frames,c("hp1_2","hp2_2","hp3_2","hp4_2","hp5_2",
 
 
 # Write csv for quicker future parsing
-fwrite(frames,paste0("E:/Tracking/frames/",ss_id,".csv"))
+fwrite(frames,paste0("E:/Tracking/frames_csv/",ss_id,".csv"))
 #fwrite(frames,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/frames/",ss_id,".csv"))

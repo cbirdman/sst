@@ -80,8 +80,8 @@ de<-de[,.(game_code,idx,period,gameClock,detype,de,bh)]
 de[,defender2:=NA][,defender3:=NA][,defender4:=NA][,defender5:=NA]
 setnames(de,c("idx","bh","de","detype"),
          c("frame","ballhandler","defender","error_type"))
-de<-de[,.(game_code,frame,period,gameClock,error_type,defender,defender2,defender3,
-          defender4,defender5,ballhandler)]
+# de<-de[,.(game_code,frame,period,gameClock,error_type,defender,defender2,defender3,
+#           defender4,defender5,ballhandler)]
 # bit<-frames2[bit!=0]
 # bit<-bit[,.(game_code,idx,period,gameClock,bit,bh)]
 # bit[,bit:=gsub("0 ","",bit)]

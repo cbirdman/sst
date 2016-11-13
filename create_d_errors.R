@@ -44,8 +44,8 @@ frames2[,bigbb:=
 frames2[,bigbb:=ifelse(Reduce("|",shift(bigbb!=0,1:50)),0,bigbb)]
 
 # HN: define
-frames2[,hn:=ifelse((Reduce("|",shift(event=="SCR",0:75))|
-                    Reduce("|",shift(event=="SCR",0:50,type="lead")))&bb!=0,bb,0)]
+frames2[,hn:=ifelse((Reduce("|",shift(event%in%c("SCR","DHO"),0:75))|
+                    Reduce("|",shift(event%in%c("SCR","DHO"),0:50,type="lead")))&bb!=0,bb,0)]
 
 # BBCL: define
 frames2[,bbcl:=ifelse(Reduce("|",shift(event=="PASS",1:75))&
@@ -89,3 +89,9 @@ frames2[,bbc:=ifelse(Reduce("|",shift(bbc!=0,1:75)),0,bbc),]
 # BBC: no error in next x or last x
 frames2[,bbc:=ifelse(Reduce("|",shift(hn!=0|bb!=0|bbcl!=0,1:60,type="lead"))|
                      Reduce("|",shift(hn!=0|bb!=0|bbcl!=0,1:60)),0,bbc),]
+
+# BBC: remove those that happen on wrong side
+frames2[,bbc:=ifelse(bbc!=0&pend==1&bh_x>47,0,
+               ifelse(bbc!=0&pend!=1&bh_x<=47,0,bbc))]
+frames2[,bbcl:=ifelse(bbcl!=0&pend==1&bh_x>47,0,
+               ifelse(bbcl!=0&pend!=1&bh_x<=47,0,bbcl))]
