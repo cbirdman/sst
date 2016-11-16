@@ -33,7 +33,7 @@ frames<-fread(paste0(path,"frames/",gameid,".csv"))
     
     # From passes
     passes<-as.data.table(js$passes)
-    passes[,event:=ifelse(is_to==FALSE,"PASS","TO")][,dplayer_id:=NA]
+    passes[,event:="PASS"][,dplayer_id:=NA]
     passes<-passes[,.(period,frame,event,passer,dplayer_id)]
     setnames(passes,"passer","player_id")
     
@@ -43,11 +43,11 @@ frames<-fread(paste0(path,"frames/",gameid,".csv"))
     touches<-touches[,.(period,frame,event,toucher_id,defender_id)]
     setnames(touches,c("toucher_id","defender_id"),c("player_id","dplayer_id"))
     
-    tov<-as.data.table(js$touches_all)
+    # From turnovers
+    tov<-as.data.table(js$turnovers)
     tov[,event:="TO"]
-    tov<-tov[outcomes%in%"TOV",.(period,end_frame,event,toucher_id,defender_id)]
-    setnames(tov,c("end_frame","toucher_id","defender_id"),
-                 c("frame","player_id","dplayer_id"))
+    tov<-tov[,.(period,frame,event,to_commiting_id,to_forcing_id)]
+    setnames(tov,c("to_commiting_id","to_forcing_id"),c("player_id","dplayer_id"))
     
     # From dribbles
     dribbles<-as.data.table(js$dribbles)
@@ -63,10 +63,11 @@ frames<-fread(paste0(path,"frames/",gameid,".csv"))
     
     #From rebounds
     rebounds<-as.data.table(js$rebounds)
-    rebounds[,event:=ifelse(rebounder%in%c(off_player_0_id,off_player_1_id,
-                                           off_player_2_id,off_player_3_id,
-                                           off_player_4_id),"ORB","DRB")]
+    pbp<-as.data.table(js$pbp)
+    pbp<-pbp[event%in%c("ORB","DRB"),.(chance_id,event)]
+    rebounds<-left_join(rebounds,pbp,by="chance_id");setDT(rebounds)
     rebounds[,frame:=substr(id,14,20)][,player_id:=rebounder][,dplayer_id:=NA]
+    rebounds[,frame:=as.numeric(frame)+1]
     rebounds<-rebounds[,.(period,frame,event,player_id,dplayer_id)]
     
     
@@ -92,17 +93,12 @@ frames<-fread(paste0(path,"frames/",gameid,".csv"))
     
     # From pbp
     other<-as.data.table(js$pbp)
-    other[,event:=ifelse(event=="FTM"&(str_count(text,"1 of 1")|
-                                       str_count(text,"2 of 2")|
-                                       str_count(text,"3 of 3")),"FTML",event)]
-    other[,frame:=ifelse(event%in%c("TO","FTML","DRB","ORB"),
-                  substr(shift(possession_id,type="lead"),13,50),
-                  substr(possession_id,13,50))][,player_id:=NA][,dplayer_id:=NA]
-    other<-other[event%in%c("TO","FTML","DRB","ORB","SUB","TMO","JMP","SPD","EPD")]
+    other[,frame:=substr(possession_id,13,50)][,player_id:=NA][,dplayer_id:=NA]
+    other<-other[event%in%c("SUB","TMO","JMP","SPD","EPD")]
     other<-other[,.(period,frame,event,player_id,dplayer_id)]
 
 # Clean markings
-markings<-rbind(markings,passes,touches,dribbles,fouls,#rebounds,
+markings<-rbind(markings,passes,touches,tov,dribbles,fouls,rebounds,
                 picks,drives,fb,other)
 markings<-markings[order(period, frame)]
 markings[,mid:=paste0(period,"_",frame)]

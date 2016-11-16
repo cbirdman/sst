@@ -63,7 +63,7 @@ for(i in c("ap1","ap2","ap3","ap4","ap5","hp1","hp2","hp3","hp4","hp5")){
 }
 
 fb<-frames_fb[,.(game_code,idx,period,gameClock,event,bit,bbb)]
-fb[,TL:=paste(floor(gameClock/60),".",gameClock%%60,sep="")]
+#fb[,TL:=paste(floor(gameClock/60),".",gameClock%%60,sep="")]
 
 # fb[,bit:=shift(bit,fill="")]
 # fb[,bbb:=shift(bbb,fill="")]

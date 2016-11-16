@@ -19,7 +19,7 @@ frames[,pus:=
       # If there isn't a stoppage in time
       ifelse(gameClock!=shift(gameClock)&
         # If there wasn't a shot in the last 5 seconds
-        !Reduce("|",shift(event%in%c("2PX","3PX","3PM","2PM","SF","TO","FTML"),0:200))&
+        !Reduce("|",shift(event%in%c("DRB","3PM","2PM","SF","TO","FTML"),0:200))&
         # And there isn't a shot in the next second
         !Reduce("|",shift(event%in%c("2PM","2PX","3PM","3PX","SF"),0:60,type="lead"))&
         # And the ball is within 24 feet of the goal
@@ -69,11 +69,11 @@ bst[,ball_stop_type:=ifelse(pup!=0,"PUP",ifelse(pus!=0,"PUS",NA))]
 bst[,player_id:=ifelse(pus==0,pup,pus)]
 bst<-bst[,.(game_code,idx,period,gameClock,player_id,bhd,ball_stop_type)]
 setnames(bst,c("idx","bhd"),c("frame","dplayer_id"))
-bst2<-toJSON(bst)
-markings_plus<-paste0(markings_plus,'"spacing": ',bst2,",")
+#bst2<-toJSON(bst)
+#markings_plus<-paste0(markings_plus,'"spacing": ',bst2,",")
 
-bst[,TL:=paste(floor(gameClock/60),".",gameClock%%60,sep="")]
-bst$player_id<-as.character(bst$player_id)
-ap<-select(players,ids_id,james_id)
-setnames(ap,c("player_id","player"))
-bst<-left_join(bst,ap,by="player_id")
+# bst[,TL:=paste(floor(gameClock/60),".",gameClock%%60,sep="")]
+# bst$player_id<-as.character(bst$player_id)
+# ap<-select(players,ids_id,james_id)
+# setnames(ap,c("player_id","player"))
+# bst<-left_join(bst,ap,by="player_id")

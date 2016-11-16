@@ -8,7 +8,9 @@ library(dplyr)
 library(data.table)
 
 all_games<-fread("C:/Users/brocatoj/Documents/Basketball/Tracking/meta/games.csv")
-game_codes<-arrange(all_games,as.Date(date))
+game_codes<-all_games %>%
+    arrange(as.Date(date)) %>%
+    filter(as.Date(date)>as.Date("2015-10-26"))
 already<-list.files("E:/Tracking/frames_csv/",pattern=".csv")
 already<-sapply(already,function(x){substr(x,1,10)})
 already<-as.data.frame(already)
@@ -21,7 +23,9 @@ game_codes<-game_codes %>%
     filter(!stats_id%in%c("2013110215","2013120123","2014011601","2014031227",
                           "2014111216","2014111214","2014111724","2014111722",
                           "2014111729","2014111730","2014111717","2014111826",
-                          "2014111823","2014111815","2014111801"))
+                          "2014111823","2014111815","2014111801","2014111927",
+                          "2014111928","2014111920","2014111919","2014111916",
+                          "2014111911","2015120323","2016012527"))
 game_codes<-as.character(game_codes$stats_id)
 
 

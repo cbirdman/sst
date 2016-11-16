@@ -9,6 +9,13 @@ library(data.table)
 # gameid<-readline('Enter Game Code: (e.g., 2016061909) ')
 gameid<-"2016102525"
 
+# Read in games and players
+games<-fread("C:/Users/brocatoj/Documents/Basketball/Tracking/meta/games.csv")
+games<-games[stats_id==gameid,.(stats_id,id,game)]
+game_name<-games$game[1]
+ss_id<-games$id[1]
+players<-fread("C:/Users/brocatoj/Documents/Basketball/Tracking/meta/players_plus.csv")
+
 # Extract raw data
 frames<-readLines(paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/frames/",
                     gameid,".json"))
@@ -48,6 +55,7 @@ for(i in c("hp1","hp2","hp3","hp4","hp5","ap1","ap2","ap3","ap4","ap5")){
     ids<-players[,.(id,ids_id)]
     ids<-ids[!is.na(id)]
     setnames(ids,c(i,paste0(i,"_2")))
+    ids[[i]]<-as.numeric(ids[[1]])
     frames<-left_join(frames,ids,by=i)
 }
  

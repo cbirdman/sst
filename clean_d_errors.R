@@ -96,14 +96,14 @@ setnames(de,c("idx","bh","de","detype"),
 #de<-rbind(de,bit)
 de<-arrange(de,period,frame)
 
-de2<-toJSON(de)
-markings_plus<-paste0(markings_plus,'"defensive_errors": ',de2,",")
-rm(frames2)
-
-setDT(de)
-de[,TL:=paste(floor(gameClock/60),".",gameClock%%60,sep="")]
-ap<-players[,.(ids_id,james_id)]
-setnames(ap,c("defender","player"))
-de$defender<-as.character(de$defender)
-de<-left_join(de,ap,by="defender")
-de<-select(de,period,TL,player,error_type)
+# de2<-toJSON(de)
+# markings_plus<-paste0(markings_plus,'"defensive_errors": ',de2,",")
+# rm(frames2)
+# 
+# setDT(de)
+# de[,TL:=paste(floor(gameClock/60),".",gameClock%%60,sep="")]
+# ap<-players[,.(ids_id,james_id)]
+# setnames(ap,c("defender","player"))
+# de$defender<-as.character(de$defender)
+# de<-left_join(de,ap,by="defender")
+# de<-select(de,period,TL,player,error_type)

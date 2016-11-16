@@ -78,12 +78,12 @@ dt[,mid:=paste0(period,"_",idx)]
 dt<-dt[,.(mid,def_type)]
 shots<-left_join(shots,dt,by="mid");setDT(shots)
 shots<-select(shots,-mid)
-shots<-toJSON(shots)
-markings_plus<-paste0('{"shots_plus": ',shots,",")
+#shots<-toJSON(shots)
+#markings_plus<-paste0('{"shots_plus": ',shots,",")
 
 # Remove unnecessary dataframes2
 rm(list= ls()[!(ls() %in% c('frames','markings','js','markings_plus','pdist',
-                           'players','frames2'))])
+                           'players','frames2','shots'))])
 # shot<-shots[,.(period,game_clock,dplayer_id,def_type)]
 # shot<-arrange(shot,period,desc(game_clock))
 # shot<-shot%>%mutate(TL=paste(floor(game_clock/60),".",game_clock%%60,sep=""))

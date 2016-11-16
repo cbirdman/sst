@@ -26,4 +26,4 @@ for(gamecode in game_ids){
     source("game.R")
 }
 
-source("update_lineups.R")
+source("nba_lineups.R")

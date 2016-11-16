@@ -61,8 +61,8 @@ passes<-left_join(passes,oc,by="mid")
 passes<-passes %>%
     mutate(true_assist=ifelse(is.na(true_assist),F,true_assist),
            opportunity_created=ifelse(is.na(opportunity_created),F,opportunity_created))
-passes<-toJSON(passes)
-markings_plus<-paste0(markings_plus,'"passes": ',passes,",")
+#passes<-toJSON(passes)
+#markings_plus<-paste0(markings_plus,'"passes": ',passes,",")
 
 # Add markings to frames
 #oc2<-oc2[,.(mid,true_assist,opportunity_created)]

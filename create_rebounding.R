@@ -103,5 +103,5 @@ for(i in 0:4){
                  ifelse(str_count(ora,as.character(rebounds[[paste0("def_player_",i,"_id")]])),T,F)]
 }
 #rebounds<-select(rebounds,-pid,-box,-crash,-leak,-bw,-ora)
-rebounds<-toJSON(rebounds)
-markings_plus<-paste0(markings_plus,'"rebounds_plus": ',rebounds,"}")
+#rebounds<-toJSON(rebounds)
+#markings_plus<-paste0(markings_plus,'"rebounds_plus": ',rebounds,"}")
