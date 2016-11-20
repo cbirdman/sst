@@ -19,7 +19,7 @@ for(i in c("ap1","ap2","ap3","ap4","ap5","hp1","hp2","hp3","hp4","hp5")){
               shift(frames_reb[[paste0(gsub("p","d",i),"_y")]],30,type="lead"),
               shift(frames_reb[[paste0(i,"_y")]],30,type="lead"))<2)&
         #and the opponent doesn't get the rebound
-        !Reduce("|",shift(event=="ORB",1:120,type="lead"))&
+        #!Reduce("|",shift(event=="ORB",1:120,type="lead"))&
         # and the player is within 15 feet of the hoop
         pdist(shift(frames_reb[[paste0(i,"_x")]],30,type="lead"),ifelse(pend==1,4,90),
               shift(frames_reb[[paste0(i,"_y")]],30,type="lead"),25)<15,
@@ -84,24 +84,40 @@ reb<-reb[,.(idx,period,gameClock,event,box,crash,leak,bw,ora)]
 reb[,box:=shift(box,fill="")][,crash:=shift(crash,fill="")]
 reb[,leak:=shift(leak,fill="")][,bw:=shift(bw,fill="")]
 reb<-reb[event%in%c("ORB","DRB")]
+reb[,box:=ifelse(event=="ORB","",box)]
 rebounds<-as.data.table(js$rebounds)
 rebounds<-rebounds[order(period,-(rebound_game_clock))]
 rebounds[,pid:=paste0(period,"_",rebound_game_clock)]
 reb[,pid:=paste0(period,"_",gameClock)]
 reb<-reb[,.(pid,idx,event,box,crash,leak,bw,ora)]
 rebounds<-left_join(rebounds,reb,by="pid");setDT(rebounds)
+ap<-players[!is.na(id),.(id,ids_id)]
+ap$id<-as.numeric(ap$id)
+for(i in 0:4){
+    setnames(ap,c(paste0("def_player_",i,"_id"),paste0("def_player_",i,"_id2")))
+    rebounds<-left_join(rebounds,ap,by=paste0("def_player_",i,"_id"))
+    setnames(ap,c(paste0("off_player_",i,"_id"),paste0("off_player_",i,"_id2")))
+    rebounds<-left_join(rebounds,ap,by=paste0("off_player_",i,"_id"))
+    setDT(rebounds)
+    rebounds[,(paste0("def_player_",i,"_id")):=NULL]
+    rebounds[,(paste0("off_player_",i,"_id")):=NULL]
+    setnames(rebounds,paste0("def_player_",i,"_id2"),paste0("def_player_",i,"_id"))
+    setnames(rebounds,paste0("off_player_",i,"_id2"),paste0("off_player_",i,"_id"))
+}
+
+
 for(i in 0:4){
     rebounds[,(paste0("def_player_",i,"_box_out")):=
-                 ifelse(str_count(box,as.character(rebounds[[paste0("def_player_",i,"_id")]])),T,F)]
+                 ifelse(str_count(box,rebounds[[paste0("def_player_",i,"_id")]]),T,F)]
     rebounds[,(paste0("def_player_",i,"_crash")):=
-                 ifelse(str_count(crash,as.character(rebounds[[paste0("def_player_",i,"_id")]])),T,F)]
+                 ifelse(str_count(crash,rebounds[[paste0("def_player_",i,"_id")]]),T,F)]
     rebounds[,(paste0("def_player_",i,"_leak_out")):=
-                 ifelse(str_count(leak,as.character(rebounds[[paste0("def_player_",i,"_id")]])),T,F)]
+                 ifelse(str_count(leak,rebounds[[paste0("def_player_",i,"_id")]]),T,F)]
     rebounds[,(paste0("def_player_",i,"_ball_watch")):=
-                 ifelse(str_count(bw,as.character(rebounds[[paste0("def_player_",i,"_id")]])),T,F)]
+                 ifelse(str_count(bw,rebounds[[paste0("def_player_",i,"_id")]]),T,F)]
     rebounds[,(paste0("def_player_",i,"_offensive_rebound_allowed")):=
-                 ifelse(str_count(ora,as.character(rebounds[[paste0("def_player_",i,"_id")]])),T,F)]
+                 ifelse(str_count(ora,rebounds[[paste0("def_player_",i,"_id")]]),T,F)]
 }
-#rebounds<-select(rebounds,-pid,-box,-crash,-leak,-bw,-ora)
+rebounds<-select(rebounds,-pid,-box,-crash,-leak,-bw,-ora)
 #rebounds<-toJSON(rebounds)
 #markings_plus<-paste0(markings_plus,'"rebounds_plus": ',rebounds,"}")

@@ -1,6 +1,6 @@
 frames_fb<-frames[Reduce("|",shift(event=="FB",0:80,type="lead"))]
 frames_fb[,pend:=ifelse(shift(event=="FB",80,type="lead"),
-                        shift(pend,90,type="lead"),pend)]
+                        shift(pend,80,type="lead"),pend)]
 fb<-as.data.table(js$transitions)
 ap<-players[,.(id,ids_id)]
 setnames(ap,c("off_player1","off_player1_id"))
@@ -16,7 +16,7 @@ frames_fb<-select(frames_fb,-mid)
 setDT(frames_fb)
 frames_fb[,off_player1:=na.locf(off_player1,fromLast = T)]
 #frames_fb<-frames[(bh_x>56&bh_x<58)|(bh_x>36&bh_x<38)]
-frames_fb<-frames_fb[shift(event=="FB",90,type="lead")]
+frames_fb<-frames_fb[shift(event=="FB",80,type="lead")]
 frames_fb[,bit:=""][,bbb:=""]
 
 
@@ -62,23 +62,41 @@ for(i in c("ap1","ap2","ap3","ap4","ap5","hp1","hp2","hp3","hp4","hp5")){
              paste0(bbb," ",frames_fb[[i]]),bbb)]
 }
 
-fb<-frames_fb[,.(game_code,idx,period,gameClock,event,bit,bbb)]
+fb2<-frames_fb[,.(game_code,idx,period,gameClock,event,bit,bbb)]
 #fb[,TL:=paste(floor(gameClock/60),".",gameClock%%60,sep="")]
 
-# fb[,bit:=shift(bit,fill="")]
-# fb[,bbb:=shift(bbb,fill="")]
-# fb<-fb[event=="FB"]
-# trans<-as.data.table(js$transitions)
-# trans<-trans[order(period,frame)]
-# trans[,mid:=paste0(period,"_",frame)]
-# fb[,mid:=paste0(period,"_",idx)]
-# fb<-fb[,.(mid,bit,bbb)]
-# trans<-left_join(trans,fb,by="mid");setDT(trans)
-# for(i in 1:5){
-#     trans[,(paste0("def_player_",i,"_beat_in_transition")):=
-#               ifelse(str_count(bit,as.character(trans[[paste0("def_player_",i,"_id")]])),T,F)]
-#     trans[,(paste0("def_player_",i,"_beat_by_ball")):=
-#               ifelse(str_count(bbb,as.character(trans[[paste0("def_player_",i,"_id")]])),T,F)]
-# }
+fb<-frames[shift(event=="FB")]
+fb<-fb[,.(period,idx,ap1,ap2,ap3,ap4,ap5,hp1,hp2,hp3,hp4,hp5)]
+fb<-cbind(fb,fb2$bit,fb2$bbb)
+setnames(fb,c("period","idx","V2","V3"),c("period","frame","bit","bbb"))
+trans<-as.data.table(js$transitions)
+trans<-trans[order(period,frame)]
+trans[,mid:=paste0(period,"_",frame)]
+fb[,mid:=paste0(period,"_",frame)]
+fb<-fb[,.(mid,bit,bbb,ap1:hp5)]
+trans<-left_join(trans,fb,by="mid");setDT(trans)
+
+ap<-players[!is.na(id),.(id,ids_id)]
+for(i in 1:5){
+    setnames(ap,c(paste0("def_player",i),paste0("def_player_",i,"_id")))
+    trans[[paste0("def_player",i)]]<-as.character(trans[[paste0("def_player",i)]])
+    trans<-left_join(trans,ap,by=paste0("def_player",i))
+    setDT(trans)
+    trans[,(paste0("def_player",i)):=NULL]
+    setnames(trans,paste0("def_player_",i,"_id"),paste0("def_player",i))
+}
+
+trans[,def_player1:=ifelse(off_player1%in%c(hp1,hp2,hp3,hp4,hp5),ap1,hp1)]
+trans[,def_player2:=ifelse(off_player1%in%c(hp1,hp2,hp3,hp4,hp5),ap2,hp2)]
+trans[,def_player3:=ifelse(off_player1%in%c(hp1,hp2,hp3,hp4,hp5),ap3,hp3)]
+trans[,def_player4:=ifelse(off_player1%in%c(hp1,hp2,hp3,hp4,hp5),ap4,hp4)]
+trans[,def_player5:=ifelse(off_player1%in%c(hp1,hp2,hp3,hp4,hp5),ap5,hp5)]
+
+for(i in 1:5){
+    trans[,(paste0("def_player_",i,"_beat_in_transition")):=
+              ifelse(str_count(bit,as.character(trans[[paste0("def_player",i)]])),T,F)]
+    trans[,(paste0("def_player_",i,"_beat_by_ball")):=
+              ifelse(str_count(bbb,as.character(trans[[paste0("def_player",i)]])),T,F)]
+}
 #trans<-toJSON(trans)
 #markings_plus<-paste0(markings_plus,'"transition_plus": ',trans,"}")

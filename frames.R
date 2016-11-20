@@ -9,8 +9,8 @@ library(data.table)
 
 # gameid<-readline('Enter Game Code: (e.g., 2016061909) ')
 # location<-readline('At Work? (Y/N) ')
-#gameid<-"2016103010"
-#location<-"N"
+gameid<-"2016103010"
+location<-"N"
 
 # Import necessary data
 games<-fread("C:/Users/brocatoj/Documents/Basketball/Tracking/meta/games.csv")

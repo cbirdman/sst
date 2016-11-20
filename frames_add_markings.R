@@ -66,8 +66,13 @@ frames<-fread(paste0(path,"frames/",gameid,".csv"))
     pbp<-as.data.table(js$pbp)
     pbp<-pbp[event%in%c("ORB","DRB"),.(chance_id,event)]
     rebounds<-left_join(rebounds,pbp,by="chance_id");setDT(rebounds)
-    rebounds[,frame:=substr(id,14,20)][,player_id:=rebounder][,dplayer_id:=NA]
-    rebounds[,frame:=as.numeric(frame)+1]
+    rebounds[,pid:=paste0(period,"_",rebound_game_clock)][,dplayer_id:=NA]
+    df<-distinct(frames,gameClock,.keep_all=T)
+    df<-df[,.(period,gameClock,idx)]
+    df[,pid:=paste0(period,"_",gameClock)]
+    df<-df[,.(pid,idx)]
+    rebounds<-left_join(rebounds,df,by="pid");setDT(rebounds);rm(df)
+    setnames(rebounds,c("idx","rebounder"),c("frame","player_id"))
     rebounds<-rebounds[,.(period,frame,event,player_id,dplayer_id)]
     
     
