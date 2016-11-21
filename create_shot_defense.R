@@ -2,7 +2,9 @@ frames2<-frames[Reduce("|",shift(event%in%c("2PM","2PX","3PM","3PX","SF"),0:151,
                 Reduce("|",shift(event%in%c("2PM","2PX","3PM","3PX","SF"),0:151))|
                 Reduce("|",shift(ball_x>49&bh_x<58,0:51,type="lead"))|
                 Reduce("|",shift(ball_x>36&bh_x<45,0:51,type="lead"))]
-
+frames2<-select(frames2,-pus,-pup)
+frames_reb<-frames[Reduce("|",shift(event%in%c("2PM","2PX","3PM","3PX","SF"),0:151))]
+rm(frames)
 
 # Remove event NAs
 frames2[,event:=ifelse(is.na(event),0,event)]
@@ -77,18 +79,73 @@ dt<-frames2[,.(period,idx,def_type)]
 dt[,mid:=paste0(period,"_",idx)]
 dt<-dt[,.(mid,def_type)]
 shots<-left_join(shots,dt,by="mid");setDT(shots)
-shots<-select(shots,-mid)
+
+# Add nbacom id and player name
+ap<-players[!is.na(id),.(id,ids_id)]
+ap$id<-as.numeric(ap$id)
+setnames(ap,c("player_id","player_id_"))
+shots<-left_join(shots,ap,by="player_id");setDT(shots)
+shots[,player_id:=NULL]
+setnames(shots,"player_id_","player_id")
+setnames(ap,c("passer_id","passer_id_"))
+shots<-left_join(shots,ap,by="passer_id");setDT(shots)
+shots[,passer_id:=NULL]
+setnames(shots,"passer_id_","passer_id")
+
+for(i in 1:3){
+    setnames(ap,c(paste0("dplayer",i,"_id"),paste0("dplayer",i,"_id2")))
+    shots<-left_join(shots,ap,by=paste0("dplayer",i,"_id"))
+    setnames(ap,c(paste0("contester",i,"_id"),paste0("contester",i,"_id2")))
+    shots<-left_join(shots,ap,by=paste0("contester",i,"_id"))
+    setDT(shots)
+    shots[,(paste0("dplayer",i,"_id")):=NULL]
+    shots[,(paste0("contester",i,"_id")):=NULL]
+    setnames(shots,paste0("dplayer",i,"_id2"),paste0("dplayer",i,"_id"))
+    setnames(shots,paste0("contester",i,"_id2"),paste0("contester",i,"_id"))
+}
+shots[,c("approach_1","approach_2","approach_3","approach_4"):=
+           tstrsplit(dplayer1_approach, ",", fixed=T)]
+shots[,approach_1:=substr(approach_1,3,19)]
+shots[,approach_2:=gsub(",","",approach_2)][,approach_3:=gsub(",","",approach_3)]
+shots[,approach_4:=gsub(")","",approach_4)]
+
+shots<-shots %>%
+    select(id,season,game_code,period,orig_frame_idx,frame_idx,frame_time,game_clock,
+           home_team_id,away_team_id,o_team,d_team,score_home,score_away,is_home,
+           orig_shot_clock,shot_clock,possession_id,chance_id,
+           possible_anomaly,corrected,
+           player_id,receive_loc_x,receive_loc_y,receive_time,
+           location_x,location_y,release_time,dribbles_before,shot_angle,shot_dist,
+           simple_shot_type,complex_shot_type,made,is_three,catch_and_shoot,
+           putback,blocked,contested,fouled,sefg,pa_sefg,velocity_mag,velocity_angle,
+           passer_id,passer_loc_x,passer_loc_y,potential_assist,created_from_paint,
+           dplayer1_id,dplayer2_id,dplayer3_id,
+           approach_1,approach_2,approach_3,approach_4,
+           dplayer1_dist,dplayer2_dist,dplayer3_dist,
+           dplayer1_velocity_angle,dplayer2_velocity_angle,dplayer3_velocity_angle,
+           dplayer1_velocity_mag,dplayer2_velocity_mag,dplayer3_velocity_mag,
+           contester1_id,contester2_id,contester3_id,
+           dplayer1_angle,dplayer2_angle,dplayer3_angle,def_type)
+
+# Write to file
+write.csv(shots,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/j_markings/",
+          gameid,"_shots.csv"),row.names=F)
+
+# Create json file if necessary
 #shots<-toJSON(shots)
 #markings_plus<-paste0('{"shots_plus": ',shots,",")
 
 # Remove unnecessary dataframes2
-rm(list= ls()[!(ls() %in% c('frames','markings','js','markings_plus','pdist',
-                           'players','frames2','shots'))])
-# shot<-shots[,.(period,game_clock,dplayer_id,def_type)]
-# shot<-arrange(shot,period,desc(game_clock))
-# shot<-shot%>%mutate(TL=paste(floor(game_clock/60),".",game_clock%%60,sep=""))
-# shot$dplayer_id<-as.character(shot$dplayer_id)
+rm(list= ls()[!(ls() %in% c('gameid','frames2','frames_reb','markings','js',
+                            'pdist','players','bst','trans','shots'))])
+
+# Simple Shots for Checking
+# simple_shots<-shots[,.(period,game_clock,dplayer_id,def_type)]
+# simple_shots<-arrange(simple_shots,period,desc(game_clock))
+# simple_shots<-simple_shots %>%
+#     mutate(TL=paste(floor(game_clock/60),".",game_clock%%60,sep=""))
+# simple_shots$dplayer_id<-as.character(shot$dplayer_id)
 # ap<-players[,.(id,james_id)]
 # setnames(ap,c("dplayer_id","player"))
-# shot<-left_join(shot,ap,by="dplayer_id")
-# shot<-select(shot,period,TL,player,def_type)
+# simple_shots<-left_join(simple_shots,ap,by="dplayer_id")
+# simple_shots<-select(simple_shots,period,TL,player,def_type)

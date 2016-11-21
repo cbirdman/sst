@@ -133,4 +133,4 @@ frames<-left_join(frames,markings,by="mid");setDT(frames)
 frames<-select(frames,-home_team,-away_team,-mid)
 
 # Remove unnecessary dataframes
-rm(list= ls()[!(ls() %in% c('frames','markings','js','players'))])
+rm(list= ls()[!(ls() %in% c('gameid','frames','markings','js','players'))])

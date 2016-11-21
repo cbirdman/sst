@@ -1,5 +1,3 @@
-frames_reb<-frames[Reduce("|",shift(event%in%c("2PM","2PX","3PM","3PX","SF"),0:151))]
-
 # REBOUNDING
 frames_reb[,box:=""][,crash:=""][,leak:=""][,bw:=""][,ora:=0][,go:=""]
 for(i in c("ap1","ap2","ap3","ap4","ap5","hp1","hp2","hp3","hp4","hp5")){
@@ -118,6 +116,42 @@ for(i in 0:4){
     rebounds[,(paste0("def_player_",i,"_offensive_rebound_allowed")):=
                  ifelse(str_count(ora,rebounds[[paste0("def_player_",i,"_id")]]),T,F)]
 }
-rebounds<-select(rebounds,-pid,-box,-crash,-leak,-bw,-ora)
+
+rebounds<-rebounds %>%
+    select(id,season,period,idx,chance_id,event,rim_game_clock,rebound_game_clock,
+           rebounded,rebounder,rebound_x,rebound_y,
+           off_player_0_id,off_player_1_id,off_player_2_id,off_player_3_id,off_player_4_id,
+           off_player_0_had_opportunity,off_player_1_had_opportunity,off_player_2_had_opportunity,off_player_3_had_opportunity,off_player_4_had_opportunity,
+           off_player_0_crash,off_player_1_crash,off_player_2_crash,off_player_3_crash,off_player_4_crash,
+           off_player_0_rb_pct_shot,off_player_1_rb_pct_shot,off_player_2_rb_pct_shot,off_player_3_rb_pct_shot,off_player_4_rb_pct_shot,
+           off_player_0_shot_loc_x,off_player_1_shot_loc_x,off_player_2_shot_loc_x,off_player_3_shot_loc_x,off_player_4_shot_loc_x,
+           off_player_0_shot_loc_y,off_player_1_shot_loc_y,off_player_2_shot_loc_y,off_player_3_shot_loc_y,off_player_4_shot_loc_y,
+           off_player_0_rb_pct_rim,off_player_1_rb_pct_rim,off_player_2_rb_pct_rim,off_player_3_rb_pct_rim,off_player_4_rb_pct_rim,
+           off_player_0_rebound_loc_x,off_player_1_rebound_loc_x,off_player_2_rebound_loc_x,off_player_3_rebound_loc_x,off_player_4_rebound_loc_x,
+           off_player_0_rebound_loc_y,off_player_1_rebound_loc_y,off_player_2_rebound_loc_y,off_player_3_rebound_loc_y,off_player_4_rebound_loc_y,
+           def_player_0_id,def_player_1_id,def_player_2_id,def_player_3_id,def_player_4_id,
+           def_player_0_had_opportunity,def_player_1_had_opportunity,def_player_2_had_opportunity,def_player_3_had_opportunity,def_player_4_had_opportunity,
+           def_player_0_crash,def_player_1_crash,def_player_2_crash,def_player_3_crash,def_player_4_crash,
+           def_player_0_box_out,def_player_1_box_out,def_player_2_box_out,def_player_3_box_out,def_player_4_box_out,
+           def_player_0_leak_out,def_player_1_leak_out,def_player_2_leak_out,def_player_3_leak_out,def_player_4_leak_out,
+           def_player_0_ball_watch,def_player_1_ball_watch,def_player_2_ball_watch,def_player_3_ball_watch,def_player_4_ball_watch,
+           def_player_0_offensive_rebound_allowed,def_player_1_offensive_rebound_allowed,def_player_2_offensive_rebound_allowed,def_player_3_offensive_rebound_allowed,def_player_4_offensive_rebound_allowed,
+           def_player_0_rb_pct_shot,def_player_1_rb_pct_shot,def_player_2_rb_pct_shot,def_player_3_rb_pct_shot,def_player_4_rb_pct_shot,
+           def_player_0_shot_loc_x,def_player_1_shot_loc_x,def_player_2_shot_loc_x,def_player_3_shot_loc_x,def_player_4_shot_loc_x,
+           def_player_0_shot_loc_y,def_player_1_shot_loc_y,def_player_2_shot_loc_y,def_player_3_shot_loc_y,def_player_4_shot_loc_y,
+           def_player_0_rb_pct_rim,def_player_1_rb_pct_rim,def_player_2_rb_pct_rim,def_player_3_rb_pct_rim,def_player_4_rb_pct_rim,
+           def_player_0_rebound_loc_x,def_player_1_rebound_loc_x,def_player_2_rebound_loc_x,def_player_3_rebound_loc_x,def_player_4_rebound_loc_x,
+           def_player_0_rebound_loc_y,def_player_1_rebound_loc_y,def_player_2_rebound_loc_y,def_player_3_rebound_loc_y,def_player_4_rebound_loc_y)
+
+# Write to file
+write.csv(rebounds,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/j_markings/",
+          gameid,"_rebounds.csv"),row.names=F)
+
+# Create JSON file if necessary
 #rebounds<-toJSON(rebounds)
 #markings_plus<-paste0(markings_plus,'"rebounds_plus": ',rebounds,"}")
+
+#Remove unnecessary dataframes
+rm(list= ls()[!(ls() %in% c('gameid','frames2','frames_reb','markings','js',
+                            'pdist','players','bst','trans','shots','passes',
+                            'de','rebounds'))])

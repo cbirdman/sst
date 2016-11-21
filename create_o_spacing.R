@@ -76,4 +76,26 @@ bst[,TL:=paste(floor(gameClock/60),".",gameClock%%60,sep="")]
 bst$player_id<-as.character(bst$player_id)
 ap<-select(players,ids_id,james_id)
 setnames(ap,c("player_id","player"))
-bst<-left_join(bst,ap,by="player_id")
+bst<-left_join(bst,ap,by="player_id");setDT(bst)
+chances<-as.data.table(js$chances)
+chances<-chances[,.(period,start_frame,id,possession_id)]
+setnames(chances,c("period","frame","chance_id","possession_id"))
+bst<-full_join(bst,chances,by=c("frame","period"));setDT(bst)
+bst<-arrange(bst,period,frame);setDT(bst)
+bst<-na.locf(bst)
+bst<-bst[!is.na(game_code)]
+bst<-distinct(bst,gameClock,.keep_all=T)
+bst[,id:=paste0(game_code,"_",period,"_",frame)]
+bst[,season:=ifelse(as.numeric(substr(gameid,5,6))>7,
+                    as.numeric(substr(gameid,1,4)),
+                    as.numeric(substr(gameid,1,4))-1)]
+bst<-bst[,.(id,season,game_code,period,frame,gameClock,TL,possession_id,chance_id,
+            ball_stop_type,player_id,player,dplayer_id)]
+
+# Write to file
+write.csv(bst,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/j_markings/",
+          gameid,"_spacing.csv"),row.names=F)
+
+# Remove unnecessary dataframes
+rm(list= ls()[!(ls() %in% c('gameid','frames','markings','js','players','pdist',
+                           'bst'))])

@@ -61,10 +61,39 @@ passes<-left_join(passes,oc,by="mid")
 passes<-passes %>%
     mutate(true_assist=ifelse(is.na(true_assist),F,true_assist),
            opportunity_created=ifelse(is.na(opportunity_created),F,opportunity_created))
+
+# Add nbacom player ids
+ap<-players[!is.na(id),.(id,ids_id)]
+ap$id<-as.numeric(ap$id)
+setnames(ap,c("passer","passer_"))
+passes<-left_join(passes,ap,by="passer");setDT(passes)
+passes[,passer:=NULL]
+setnames(passes,"passer_","passer")
+setnames(ap,c("receiver","receiver_"))
+passes<-left_join(passes,ap,by="receiver");setDT(passes)
+passes[,receiver:=NULL]
+setnames(passes,"receiver_","receiver")
+passes<-passes[,.(id,season,period,frame,game_clock,possession_id,chance_id,
+                  start_clock,end_clock,oteam,dteam,
+                  passer,passer_x,passer_y,complete,is_to,led_to_shot,
+                  assist_opp,true_assist,opportunity_created,from_pick,
+                  receiver,to_receiver_x,to_receiver_y,
+                  ball_start_x,ball_start_y,ball_start_z,ball_end_x,ball_end_y,
+                  ball_end_z)]
+
+# Write to file
+write.csv(passes,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/j_markings/",
+          gameid,"_passes.csv"),row.names=F)
+
+# Create json if necessary
 #passes<-toJSON(passes)
 #markings_plus<-paste0(markings_plus,'"passes": ',passes,",")
 
-# Add markings to frames
+# Create simple passes for viewing
 #oc2<-oc2[,.(mid,true_assist,opportunity_created)]
 #setnames(oc2,c("true_assist","opportunity_created"),c("tast","oc"))
 #frames<-left_join(frames,oc2,by="mid");setDT(frames)
+
+# Remove unnecessary dataframes
+rm(list= ls()[!(ls() %in% c('gameid','frames2','frames_reb','markings','js',
+                            'pdist','players','bst','trans','shots','passes'))])

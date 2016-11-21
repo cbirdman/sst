@@ -75,31 +75,41 @@ frames2[,de:=
 frames2<-frames2[,(1:98),with=F]
 
 # Create DE Markings
-de<-frames2[de!=0]
+de<-frames2
+de[,bh:=ifelse(detype=="hn",shift(bh,20),bh)]
+de<-de[de!=0]
 de<-de[,.(game_code,idx,period,gameClock,detype,de,bh)]
-de[,defender2:=NA][,defender3:=NA][,defender4:=NA][,defender5:=NA]
 setnames(de,c("idx","bh","de","detype"),
          c("frame","ballhandler","defender","error_type"))
-# de<-de[,.(game_code,frame,period,gameClock,error_type,defender,defender2,defender3,
-#           defender4,defender5,ballhandler)]
-# bit<-frames2[bit!=0]
-# bit<-bit[,.(game_code,idx,period,gameClock,bit,bh)]
-# bit[,bit:=gsub("0 ","",bit)]
-# bit[,c("bit","defender2","defender3","defender4","defender5"):=tstrsplit(bit," ")]
-# bit[,defender3:=ifelse(defender3==bit,NA,defender3)]
-# bit[,defender4:=ifelse(defender4==defender2,NA,defender4)]
-# bit[,defender5:=ifelse(defender5==defender3,NA,defender5)]
-# setnames(bit,c("idx","bit","bh"),c("frame","defender","ballhandler"))
-# bit[,error_type:="bit"]
-# bit<-bit[,.(game_code,frame,period,gameClock,error_type,defender,defender2,
-#             defender3,defender4,defender5,ballhandler)]
-#de<-rbind(de,bit)
 de<-arrange(de,period,frame)
+chances<-as.data.table(js$chances)
+chances<-chances[,.(period,start_frame,id,possession_id)]
+setnames(chances,c("period","frame","chance_id","possession_id"))
+de<-full_join(de,chances,by=c("frame","period"));setDT(de)
+de<-arrange(de,period,frame);setDT(de)
+de<-na.locf(de)
+de<-de[!is.na(game_code)]
+de<-distinct(de,gameClock,.keep_all=T);setDT(de)
+de$frame<-as.numeric(de$frame)
+de[,id:=paste0(game_code,"_",period,"_",frame)]
+de[,season:=ifelse(as.numeric(substr(gameid,5,6))>7,
+                    as.numeric(substr(gameid,1,4)),
+                    as.numeric(substr(gameid,1,4))-1)]
+de<-de[,.(id,season,game_code,period,frame,gameClock,possession_id,chance_id,
+            error_type,defender,ballhandler)]
+de$defender<-as.character(as.numeric(de$defender))
+de$ballhandler<-as.character(as.numeric(de$ballhandler))
 
+# Write to file
+write.csv(de,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/j_markings/",
+          gameid,"_defensive_errors.csv"),row.names=F)
+
+# Create json file if necessary
 # de2<-toJSON(de)
 # markings_plus<-paste0(markings_plus,'"defensive_errors": ',de2,",")
 # rm(frames2)
-# 
+
+# Create simple de file for viewing purposes
 # setDT(de)
 # de[,TL:=paste(floor(gameClock/60),".",gameClock%%60,sep="")]
 # ap<-players[,.(ids_id,james_id)]
@@ -107,3 +117,8 @@ de<-arrange(de,period,frame)
 # de$defender<-as.character(de$defender)
 # de<-left_join(de,ap,by="defender")
 # de<-select(de,period,TL,player,error_type)
+
+# Remove unnecessary dataframes
+# rm(list= ls()[!(ls() %in% c('gameid','frames2','frames_reb','markings','js',
+#                             'pdist','players','bst','trans','shots','passes',
+#                             'de'))])

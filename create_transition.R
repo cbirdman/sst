@@ -62,28 +62,29 @@ for(i in c("ap1","ap2","ap3","ap4","ap5","hp1","hp2","hp3","hp4","hp5")){
              paste0(bbb," ",frames_fb[[i]]),bbb)]
 }
 
-fb2<-frames_fb[,.(game_code,idx,period,gameClock,event,bit,bbb)]
-#fb[,TL:=paste(floor(gameClock/60),".",gameClock%%60,sep="")]
+# Simple transitions for checking
+simple_trans<-frames_fb[,.(game_code,idx,period,gameClock,event,bit,bbb)]
+simple_trans[,TL:=paste(floor(gameClock/60),".",gameClock%%60,sep="")]
 
 fb<-frames[shift(event=="FB")]
 fb<-fb[,.(period,idx,ap1,ap2,ap3,ap4,ap5,hp1,hp2,hp3,hp4,hp5)]
-fb<-cbind(fb,fb2$bit,fb2$bbb)
+fb<-cbind(fb,simple_trans$bit,simple_trans$bbb)
 setnames(fb,c("period","idx","V2","V3"),c("period","frame","bit","bbb"))
 trans<-as.data.table(js$transitions)
 trans<-trans[order(period,frame)]
 trans[,mid:=paste0(period,"_",frame)]
 fb[,mid:=paste0(period,"_",frame)]
-fb<-fb[,.(mid,bit,bbb,ap1:hp5)]
+fb<-select(fb,mid,bit,bbb,ap1:hp5)
 trans<-left_join(trans,fb,by="mid");setDT(trans)
 
 ap<-players[!is.na(id),.(id,ids_id)]
 for(i in 1:5){
-    setnames(ap,c(paste0("def_player",i),paste0("def_player_",i,"_id")))
-    trans[[paste0("def_player",i)]]<-as.character(trans[[paste0("def_player",i)]])
-    trans<-left_join(trans,ap,by=paste0("def_player",i))
+    setnames(ap,c(paste0("off_player",i),paste0("off_player_",i,"_id")))
+    trans[[paste0("off_player",i)]]<-as.character(trans[[paste0("off_player",i)]])
+    trans<-left_join(trans,ap,by=paste0("off_player",i))
     setDT(trans)
-    trans[,(paste0("def_player",i)):=NULL]
-    setnames(trans,paste0("def_player_",i,"_id"),paste0("def_player",i))
+    trans[,(paste0("off_player",i)):=NULL]
+    setnames(trans,paste0("off_player_",i,"_id"),paste0("off_player",i))
 }
 
 trans[,def_player1:=ifelse(off_player1%in%c(hp1,hp2,hp3,hp4,hp5),ap1,hp1)]
@@ -98,5 +99,25 @@ for(i in 1:5){
     trans[,(paste0("def_player_",i,"_beat_by_ball")):=
               ifelse(str_count(bbb,as.character(trans[[paste0("def_player",i)]])),T,F)]
 }
+
+trans<-trans %>%
+    select(id,season,period,game_clock,frame,frame_time,possession_id,chance_id,
+           oteam,dteam,is_three,putback,end_event,end_of_quarter,
+           off_player1,off_player2,off_player3,off_player4,off_player5,
+           def_player1,def_player2,def_player3,def_player4,def_player5,
+           def_player_1_beat_by_ball,def_player_2_beat_by_ball,
+           def_player_3_beat_by_ball,def_player_4_beat_by_ball,
+           def_player_5_beat_by_ball,def_player_1_beat_in_transition,
+           def_player_2_beat_in_transition,def_player_3_beat_in_transition,
+           def_player_4_beat_in_transition,def_player_5_beat_in_transition)
+
+# Write to disk
+write.csv(trans,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/j_markings/",
+          gameid,"_transitions.csv"),row.names=F)
+
 #trans<-toJSON(trans)
 #markings_plus<-paste0(markings_plus,'"transition_plus": ',trans,"}")
+
+# Remove unnecessary dataframes
+rm(list= ls()[!(ls() %in% c('gameid','frames','markings','js','players','pdist',
+                            'bst','trans'))])
