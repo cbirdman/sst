@@ -1,18 +1,58 @@
-# GRAVITY: define
-# for(i in c("ap1","ap2","ap3","ap4","ap5","hp1","hp2","hp3","hp4","hp5")){
-#     frames[,(paste0("gravity",i)):=
-#         ifelse(pend==1&bh_x<30|pend!=1&bh_x>64,
-#             ifelse(bh%in%c(ap1,ap2,ap3,ap4,ap5)&str_count(i,"A"),
-#               (pmax(pdist(frames[[paste0(i,"_x")]],Ball_x,frames[[paste0(i,"_y")]],Ball_y)+10,1)+
-#               pmax((pdist(frames[[paste0(i,"_x")]],ifelse(pend==1,4,90),frames[[paste0(i,"_y")]],25))-10,1))/
-#               pdist(frames[[paste0(i,"_x")]],frames[[paste0(gsub("P","D",i),"_x")]],
-#                      frames[[paste0(i,"_y")]],frames[[paste0(gsub("P","D",i),"_y")]]),NA),
-#             ifelse(bh%in%c(hp1,hp2,hp3,hp4,hp5)&str_count(i,"H"),
-#               (pmax(pdist(frames[[paste0(i,"_x")]],Ball_x,frames[[paste0(i,"_y")]],Ball_y)+10,1)+
-#                pmax((pdist(frames[[paste0(i,"_x")]],ifelse(pend==1,4,90),frames[[paste0(i,"_y")]],25))-10,1))/
-#                      pdist(frames[[paste0(i,"_x")]],frames[[paste0(gsub("P","D",i),"_x")]],
-#                            frames[[paste0(i,"_y")]],frames[[paste0(gsub("P","D",i),"_y")]]),NA))]
-# }
+frames_g<-frames[pdist(bh_x,ifelse(pend==1,4,90),bh_y,25)<25]
+frames_g[,hoop_x:=ifelse(pend==1,4,90)]
+frames_g[,hoop_y:=25]
+
+#Defender Distance
+for(i in c("ap1","ap2","ap3","ap4","ap5","hp1","hp2","hp3","hp4","hp5")){
+    frames_g[,(paste0("ddist",i)):=
+      ifelse(bh%in%c(ap1,ap2,ap3,ap4,ap5)&str_count(i,"a"),
+          pdist(frames_g[[paste0(i,"_x")]],frames_g[[paste0(gsub("p","d",i),"_x")]],
+                frames_g[[paste0(i,"_y")]],frames_g[[paste0(gsub("p","d",i),"_y")]]),
+      ifelse(bh%in%c(hp1,hp2,hp3,hp4,hp5)&str_count(i,"h"),
+          pdist(frames_g[[paste0(i,"_x")]],frames_g[[paste0(gsub("p","d",i),"_x")]],
+                frames_g[[paste0(i,"_y")]],frames_g[[paste0(gsub("p","d",i),"_y")]]),NA))]
+}
+
+#HOOP DIST
+for(i in c("ap1","ap2","ap3","ap4","ap5","hp1","hp2","hp3","hp4","hp5")){
+    frames_g[,(paste0("hdist",i)):=
+      ifelse(bh%in%c(ap1,ap2,ap3,ap4,ap5)&str_count(i,"a"),
+        pdist(frames_g[[paste0(i,"_x")]],hoop_x,frames_g[[paste0(i,"_y")]],hoop_y),
+      ifelse(bh%in%c(hp1,hp2,hp3,hp4,hp5)&str_count(i,"h"),
+        pdist(frames_g[[paste0(i,"_x")]],hoop_x,frames_g[[paste0(i,"_y")]],hoop_y),NA))]
+}
+
+#BALL DIST
+for(i in c("ap1","ap2","ap3","ap4","ap5","hp1","hp2","hp3","hp4","hp5")){
+    frames_g[,(paste0("bdist",i)):=
+      ifelse(bh%in%c(ap1,ap2,ap3,ap4,ap5)&str_count(i,"a"),
+        pdist(frames_g[[paste0(i,"_x")]],ball_x,frames_g[[paste0(i,"_y")]],ball_y),
+      ifelse(bh%in%c(hp1,hp2,hp3,hp4,hp5)&str_count(i,"h"),
+        pdist(frames_g[[paste0(i,"_x")]],ball_x,frames_g[[paste0(i,"_y")]],ball_y),NA))]
+}
+
+gravity<-data.frame(c(frames_g$hp1,frames_g$hp2,frames_g$hp3,frames_g$hp4,
+                      frames_g$hp5,frames_g$ap1,frames_g$ap2,frames_g$ap3,
+                      frames_g$ap4,frames_g$ap5),
+                    c(frames_g$ddisthp1,frames_g$ddisthp2,frames_g$ddisthp3,
+                      frames_g$ddisthp4,frames_g$ddisthp5,frames_g$ddistap1,
+                      frames_g$ddistap2,frames_g$ddistap3,frames_g$ddistap4,
+                      frames_g$ddistap5),
+                    c(frames_g$hdisthp1,frames_g$hdisthp2,frames_g$hdisthp3,
+                      frames_g$hdisthp4,frames_g$hdisthp5,frames_g$hdistap1,
+                      frames_g$hdistap2,frames_g$hdistap3,frames_g$hdistap4,
+                      frames_g$hdistap5),
+                    c(frames_g$bdisthp1,frames_g$bdisthp2,frames_g$bdisthp3,
+                      frames_g$bdisthp4,frames_g$bdisthp5,frames_g$bdistap1,
+                      frames_g$bdistap2,frames_g$bdistap3,frames_g$bdistap4,
+                      frames_g$bdistap5))
+names(gravity)<-c("player_id","ddist","hdist","bdist")
+setDT(gravity)
+gravity[,ddist:=mean(ddist,na.rm=T),by="player_id"]
+gravity[,hdist:=mean(hdist,na.rm=T),by="player_id"]
+gravity[,bdist:=mean(bdist,na.rm=T),by="player_id"]
+gravity<-distinct(gravity,player_id,.keep_all = T)
+gravity$player_id<-as.character(gravity$player_id)
 
 # PUS: define
 frames[,pus:=
@@ -35,11 +75,6 @@ frames[,pus:=ifelse(shift(pus)==pus&shift(pus,2)==pus&shift(pus,3)==pus&
 
 # PUS: remove repeats
 frames[,pus:=ifelse(Reduce("|",shift(pus!=0,1:60)),0,pus),]
-# frames[,ad1_x:=NULL][,ad2_x:=NULL][,ad3_x:=NULL][,ad4_x:=NULL][,ad5_x:=NULL]
-# frames[,hd1_x:=NULL][,hd2_x:=NULL][,hd3_x:=NULL][,hd4_x:=NULL][,hd5_x:=NULL]
-# frames[,ad1_y:=NULL][,ad2_y:=NULL][,ad3_y:=NULL][,ad4_y:=NULL][,ad5_y:=NULL]
-# frames[,hd1_y:=NULL][,hd2_y:=NULL][,hd3_y:=NULL][,hd4_y:=NULL][,hd5_y:=NULL]
-
 
 #PUP: define
 frames[,pup:=
@@ -98,4 +133,4 @@ write.csv(bst,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/j_markings
 
 # Remove unnecessary dataframes
 rm(list= ls()[!(ls() %in% c('gameid','frames','markings','js','players','pdist',
-                           'bst'))])
+                           'bst','gravity'))])

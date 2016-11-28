@@ -120,4 +120,4 @@ write.csv(trans,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/j_markin
 
 # Remove unnecessary dataframes
 rm(list= ls()[!(ls() %in% c('gameid','frames','markings','js','players','pdist',
-                            'bst','trans'))])
+                            'bst','gravity','trans'))])

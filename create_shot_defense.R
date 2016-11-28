@@ -2,7 +2,7 @@ frames2<-frames[Reduce("|",shift(event%in%c("2PM","2PX","3PM","3PX","SF"),0:151,
                 Reduce("|",shift(event%in%c("2PM","2PX","3PM","3PX","SF"),0:151))|
                 Reduce("|",shift(ball_x>49&bh_x<58,0:51,type="lead"))|
                 Reduce("|",shift(ball_x>36&bh_x<45,0:51,type="lead"))]
-frames2<-select(frames2,-pus,-pup)
+frames2<-select(frames2,game_code:pend)
 frames_reb<-frames[Reduce("|",shift(event%in%c("2PM","2PX","3PM","3PX","SF"),0:151))]
 rm(frames)
 
@@ -126,6 +126,7 @@ shots<-shots %>%
            dplayer1_velocity_mag,dplayer2_velocity_mag,dplayer3_velocity_mag,
            contester1_id,contester2_id,contester3_id,
            dplayer1_angle,dplayer2_angle,dplayer3_angle,def_type)
+shots<-shots[order(period,frame_idx)]
 
 # Write to file
 write.csv(shots,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/j_markings/",
@@ -137,15 +138,15 @@ write.csv(shots,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/j_markin
 
 # Remove unnecessary dataframes2
 rm(list= ls()[!(ls() %in% c('gameid','frames2','frames_reb','markings','js',
-                            'pdist','players','bst','trans','shots'))])
+                            'pdist','players','bst','gravity','trans','shots'))])
 
-# Simple Shots for Checking
-# simple_shots<-shots[,.(period,game_clock,dplayer_id,def_type)]
+# # Simple Shots for Checking
+# simple_shots<-shots[,.(period,game_clock,dplayer1_id,def_type)]
 # simple_shots<-arrange(simple_shots,period,desc(game_clock))
 # simple_shots<-simple_shots %>%
 #     mutate(TL=paste(floor(game_clock/60),".",game_clock%%60,sep=""))
-# simple_shots$dplayer_id<-as.character(shot$dplayer_id)
-# ap<-players[,.(id,james_id)]
-# setnames(ap,c("dplayer_id","player"))
-# simple_shots<-left_join(simple_shots,ap,by="dplayer_id")
+# simple_shots$dplayer1_id<-as.character(simple_shots$dplayer1_id)
+# ap<-players[!is.na(id),.(ids_id,james_id)]
+# setnames(ap,c("dplayer1_id","player"))
+# simple_shots<-left_join(simple_shots,ap,by="dplayer1_id")
 # simple_shots<-select(simple_shots,period,TL,player,def_type)

@@ -22,9 +22,9 @@ frames2[,bb:=ifelse(Reduce("|",shift(bb!=0,1:50)),0,bb),]
 # Blowby on screener defender: not guarding him x frames2 ago, but beat by him in sam way as bb...
 frames2[,bigbb:=
   # If the ballhandler defender is not continous
-  ifelse(pend==1&bhd!=shift(bhd,25)&bh==shift(bh,25)&
-    # And bhd remains continuous and it's not the beginning of a quarter
-    bhd==shift(bhd,10)&bh==shift(bh,10)&gameClock!=720&
+  ifelse(bhd!=shift(bhd,25)&bhd==shift(bhd,10)&
+    # And bh remains continuous and it's not the beginning of a quarter
+    bh==shift(bh,10)&bh==shift(bh,25)&gameClock!=720&
     # And the ballhandler moved 4ft closer to hoop in the last second
     (pdist(shift(bh_x,10),ifelse(pend==1,4,90),shift(bh_y,10),25)-
      pdist(bh_x,ifelse(pend==1,4,90),bh_y,25))>4&

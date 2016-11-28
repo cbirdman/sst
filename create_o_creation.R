@@ -80,6 +80,7 @@ passes<-passes[,.(id,season,period,frame,game_clock,possession_id,chance_id,
                   receiver,to_receiver_x,to_receiver_y,
                   ball_start_x,ball_start_y,ball_start_z,ball_end_x,ball_end_y,
                   ball_end_z)]
+passes<-passes[order(period,frame)]
 
 # Write to file
 write.csv(passes,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/j_markings/",
@@ -96,4 +97,5 @@ write.csv(passes,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/j_marki
 
 # Remove unnecessary dataframes
 rm(list= ls()[!(ls() %in% c('gameid','frames2','frames_reb','markings','js',
-                            'pdist','players','bst','trans','shots','passes'))])
+                            'pdist','players','bst','gravity','trans','shots',
+                            'passes'))])

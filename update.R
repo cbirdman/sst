@@ -27,3 +27,6 @@ for(gamecode in game_ids){
 }
 
 source("nba_lineups.R")
+source("combine.R")
+source("combine_matchups.R")
+source("rapm_matchups.R")

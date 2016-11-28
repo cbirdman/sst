@@ -153,5 +153,5 @@ write.csv(rebounds,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/j_mar
 
 #Remove unnecessary dataframes
 rm(list= ls()[!(ls() %in% c('gameid','frames2','frames_reb','markings','js',
-                            'pdist','players','bst','trans','shots','passes',
-                            'de','rebounds'))])
+                            'pdist','players','bst','gravity','trans','shots',
+                            'passes','de','rebounds'))])

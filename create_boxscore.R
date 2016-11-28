@@ -2,9 +2,11 @@ library(jsonlite)
 library(data.table)
 
 # Download boxscore from nba
-gameid<-"0021600041"
+games<-fread("C:/Users/brocatoj/Documents/Basketball/Tracking/meta/games.csv")
+games<-games[id==gameid,.(id,ids_id)]
+ids_id<-games$ids_id[1]
 url <- fromJSON(paste0("http://stats.nba.com/stats/boxscoretraditionalv2?GameID=",
-                        gameid,"&StartPeriod=0&EndPeriod=0&StartRange=0&",
+                        ids_id,"&StartPeriod=0&EndPeriod=0&StartRange=0&",
                         "EndRange=0&RangeType=0"))
 head<-url$resultSets$headers[[1]]
 box<-as.data.table(url$resultSets$rowSet[[1]])
@@ -91,14 +93,14 @@ drives$eagle_id<-as.character(drives$eagle_id)
 box<-left_join(box,drives,by="eagle_id");setDT(box)
 
 # charges
-charges<-as.data.table(js$charges)
-charges<-charges[,charge:=1][,charge:=sum(charge),by="taker_id"]
-charges<-distinct(charges,taker_id,.keep_all=T)
-charges<-charges[,.(taker_id,charge)]
-setnames(charges,"taker_id","eagle_id")
-charges$eagle_id<-as.character(charges$eagle_id)
-box<-left_join(box,charges,by="eagle_id");setDT(box)
-box[,charge:=ifelse(is.na(charge),0,charge)]
+# charges<-as.data.table(js$charges)
+# charges<-charges[,charge:=1][,charge:=sum(charge),by="taker_id"]
+# charges<-distinct(charges,taker_id,.keep_all=T)
+# charges<-charges[,.(taker_id,charge)]
+# setnames(charges,"taker_id","eagle_id")
+# charges$eagle_id<-as.character(charges$eagle_id)
+# box<-left_join(box,charges,by="eagle_id");setDT(box)
+# box[,charge:=ifelse(is.na(charge),0,charge)]
 
 # rebounds
 reb<-rebounds
@@ -171,6 +173,7 @@ spacing[,pup:=sum(ball_stop_type=="PUP"),by="player_id"]
 spacing<-spacing[,.(player_id,pus,pup)]
 spacing<-distinct(spacing,player_id,.keep_all = T)
 box<-left_join(box,spacing,by="player_id")
+box<-left_join(box,gravity,by="player_id")
 
 box[is.na(box)] <- 0
 
@@ -180,5 +183,5 @@ write.csv(box,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/j_markings
 
 #Remove unnecessary dataframes
 rm(list= ls()[!(ls() %in% c('gameid','frames2','frames_reb','markings','js',
-                            'pdist','players','bst','trans','shots','passes',
-                            'de','rebounds'))])
+                            'pdist','players','bst','gravity','trans','shots',
+                            'passes','de','rebounds','box'))])
