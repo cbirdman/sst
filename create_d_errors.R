@@ -12,7 +12,9 @@ frames2[,bb:=
      pdist(bh_x,ifelse(pend==1,4,90),bh_y,25))>0&
     # And the defender was (nearly) closer to the hoop a second ago
     (pdist(shift(bh_x,25),ifelse(pend==1,4,90),shift(bh_y,25),25)-
-     pdist(shift(bhd_x,25),ifelse(pend==1,4,90),shift(bhd_y,25),25))>-0.5,
+     pdist(shift(bhd_x,25),ifelse(pend==1,4,90),shift(bhd_y,25),25))>-0.5&
+    # And the play occurred within 50 feet of the hoop
+    pdist(bh_x,ifelse(pend==1,4,90),bh_y,25)<50,
     # Then the defender was blown by. Otherwise he wasn't.
     bhd,0)]
 

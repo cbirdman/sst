@@ -20,7 +20,8 @@ game_codes<-game_codes %>%
     filter(is.na(already)) %>%
     select(id) %>%
     filter(!id%in%c("2013110217","2013120126","2014011601","2014031230",
-                    "2014111218"))
+                    "2014111218","2014122516","2015011517",
+                    "2015032217","2015120326"))
 game_codes<-as.character(game_codes$id)
 
 

@@ -59,12 +59,22 @@ frames[,pus:=
       # If there isn't a stoppage in time
       ifelse(gameClock!=shift(gameClock)&
         # If there wasn't a shot in the last 5 seconds
-        !Reduce("|",shift(event%in%c("3PX","2PX","3PM","2PM","SF","TO","FTML"),0:200))&
+        #!Reduce("|",shift(event%in%c("3PX","2PX","3PM","2PM","SF","TO","FTML"),0:200))&
+        # If there was a pass in the last two seconds
+        Reduce("|",shift(event%in%c("PASS"),0:50))&
+        # Player has had the ball 15+ frames
+        #bh==shift(bh,15)&
         # And there isn't a shot in the next second
         !Reduce("|",shift(event%in%c("2PM","2PX","3PM","3PX","SF","TO"),0:60,type="lead"))&
+        # And there isn't a pass in the next second
+        !Reduce("|",shift(event%in%c("PASS"),0:15,type="lead"))&
         # And the ball is within 24 feet of the goal
         ((pend==1&bh_x<28)|(pend==0&bh_x>66))&
-        #And the defender is over 8 feet away
+        # And the ballhandler isn't moving away from the hoop
+        pdist(bh_x,ifelse(pend==1,4,90),bh_y,25)-
+        pdist(shift(bh_x,5,type="lead"),ifelse(pend==1,4,90),
+              shift(bh_y,5,type="lead"),25)>=-1&
+        #And the defender is over 10 feet away for 2 frames
         pdist(bh_x,bhd_x,bh_y,bhd_y)>10,
         # Then the ballhandler passed up the shot. Otherwise he didn't
         bh,0)]
@@ -124,8 +134,8 @@ bst[,id:=paste0(game_code,"_",period,"_",frame)]
 bst[,season:=ifelse(as.numeric(substr(gameid,5,6))>7,
                     as.numeric(substr(gameid,1,4)),
                     as.numeric(substr(gameid,1,4))-1)]
-bst<-bst[,.(id,season,game_code,period,frame,gameClock,TL,possession_id,chance_id,
-            ball_stop_type,player_id,player,dplayer_id)]
+bst<-bst[,.(id,possession_id,chance_id,season,game_code,period,frame,gameClock,
+            ball_stop_type,player_id,dplayer_id)]
 
 # Write to file
 write.csv(bst,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/j_markings/",

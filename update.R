@@ -7,6 +7,7 @@ gameids<-fread(paste0(path,"meta/games.csv"))
 gameids$date<-as.Date(gameids$date)
 gameids<-gameids[order(date)]
 gameids<-gameids[date==Sys.Date()-1]
+gameids<-gameids[id!="2016113002"]
 game_ids<-as.character(gameids$id)
 for(gameid in game_ids){
     print(gameid)

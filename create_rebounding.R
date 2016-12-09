@@ -118,7 +118,7 @@ for(i in 0:4){
 }
 
 rebounds<-rebounds %>%
-    select(id,season,period,idx,chance_id,event,rim_game_clock,rebound_game_clock,
+    select(id,chance_id,season,period,idx,event,rim_game_clock,rebound_game_clock,
            rebounded,rebounder,rebound_x,rebound_y,
            off_player_0_id,off_player_1_id,off_player_2_id,off_player_3_id,off_player_4_id,
            off_player_0_had_opportunity,off_player_1_had_opportunity,off_player_2_had_opportunity,off_player_3_had_opportunity,off_player_4_had_opportunity,
@@ -152,6 +152,6 @@ write.csv(rebounds,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/j_mar
 #markings_plus<-paste0(markings_plus,'"rebounds_plus": ',rebounds,"}")
 
 #Remove unnecessary dataframes
-rm(list= ls()[!(ls() %in% c('gameid','frames2','frames_reb','markings','js',
-                            'pdist','players','bst','gravity','trans','shots',
-                            'passes','de','rebounds'))])
+rm(list= ls()[!(ls() %in% c('gameid','frames2','frames_reb','frames_tov',
+                            'markings','js','pdist','players','bst','gravity',
+                            'trans','shots','passes','de','rebounds'))])

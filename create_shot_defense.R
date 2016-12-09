@@ -4,6 +4,7 @@ frames2<-frames[Reduce("|",shift(event%in%c("2PM","2PX","3PM","3PX","SF"),0:151,
                 Reduce("|",shift(ball_x>36&bh_x<45,0:51,type="lead"))]
 frames2<-select(frames2,game_code:pend)
 frames_reb<-frames[Reduce("|",shift(event%in%c("2PM","2PX","3PM","3PX","SF"),0:151))]
+frames_tov<-frames[event=="TO"]
 rm(frames)
 
 # Remove event NAs
@@ -110,9 +111,9 @@ shots[,approach_2:=gsub(",","",approach_2)][,approach_3:=gsub(",","",approach_3)
 shots[,approach_4:=gsub(")","",approach_4)]
 
 shots<-shots %>%
-    select(id,season,game_code,period,orig_frame_idx,frame_idx,frame_time,game_clock,
-           home_team_id,away_team_id,o_team,d_team,score_home,score_away,is_home,
-           orig_shot_clock,shot_clock,possession_id,chance_id,
+    select(id,possession_id,chance_id,season,game_code,period,
+           frame_idx,frame_time,game_clock,home_team_id,away_team_id,o_team,
+           d_team,score_home,score_away,is_home,shot_clock,
            possible_anomaly,corrected,
            player_id,receive_loc_x,receive_loc_y,receive_time,
            location_x,location_y,release_time,dribbles_before,shot_angle,shot_dist,
@@ -137,8 +138,9 @@ write.csv(shots,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/j_markin
 #markings_plus<-paste0('{"shots_plus": ',shots,",")
 
 # Remove unnecessary dataframes2
-rm(list= ls()[!(ls() %in% c('gameid','frames2','frames_reb','markings','js',
-                            'pdist','players','bst','gravity','trans','shots'))])
+rm(list= ls()[!(ls() %in% c('gameid','frames2','frames_reb','frames_tov',
+                            'markings','js','pdist','players','bst','gravity',
+                            'trans','shots'))])
 
 # # Simple Shots for Checking
 # simple_shots<-shots[,.(period,game_clock,dplayer1_id,def_type)]

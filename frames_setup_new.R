@@ -81,10 +81,17 @@ for(i in c("ap1","ap2","ap3","ap4","ap5","hp1","hp2","hp3","hp4","hp5")){
     frames[,bh_y:=ifelse(bh==frames[[i]],frames[[paste0(i,"_y")]],bh_y)]
     frames[,bhd_x:=ifelse(bhd==frames[[i]],frames[[paste0(i,"_x")]],bhd_x)]
     frames[,bhd_y:=ifelse(bhd==frames[[i]],frames[[paste0(i,"_y")]],bhd_y)]
-    frames[,obh_x:=ifelse(bh==frames[[i]],shift(frames[[paste0(i,"_x")]],25),obh_x)]
-    frames[,obh_y:=ifelse(bh==frames[[i]],shift(frames[[paste0(i,"_y")]],25),obh_y)]
-    frames[,obhd:=ifelse(bh==0,0,ifelse(bh==frames[[i]],
-                                     shift(frames[[gsub("p","d",i)]],25),obhd))]
+    }
+    
+# Identify coordinates of "OLD" ballhandler
+for(j in c("ap1","ap2","ap3","ap4","ap5","hp1","hp2","hp3","hp4","hp5")){
+    frames[,obh_x:=ifelse(bh==shift(frames[[j]],25),
+                          shift(frames[[paste0(j,"_x")]],25),obh_x)]
+    frames[,obh_y:=ifelse(bh==shift(frames[[j]],25),
+                          shift(frames[[paste0(j,"_y")]],25),obh_y)]
+    frames[,obhd:=ifelse(bh==0,0,
+                    ifelse(bh==shift(frames[[j]],25),
+                           shift(frames[[gsub("p","d",j)]],25),obhd))]
 }
 
 # Identify coordinates for "OLD" ballhandler defender for use in bbc

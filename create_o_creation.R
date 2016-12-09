@@ -73,13 +73,16 @@ setnames(ap,c("receiver","receiver_"))
 passes<-left_join(passes,ap,by="receiver");setDT(passes)
 passes[,receiver:=NULL]
 setnames(passes,"receiver_","receiver")
-passes<-passes[,.(id,season,period,frame,game_clock,possession_id,chance_id,
+passes<-passes[,.(id,possession_id,chance_id,season,period,frame,game_clock,
                   start_clock,end_clock,oteam,dteam,
                   passer,passer_x,passer_y,complete,is_to,led_to_shot,
                   assist_opp,true_assist,opportunity_created,from_pick,
                   receiver,to_receiver_x,to_receiver_y,
                   ball_start_x,ball_start_y,ball_start_z,ball_end_x,ball_end_y,
                   ball_end_z)]
+passes[,opportunity_created:=ifelse(assist_opp==F&true_assist==T&
+                                    opportunity_created==T,F,opportunity_created)]
+passes[,true_assist:=ifelse(assist_opp==F,F,true_assist)]
 passes<-passes[order(period,frame)]
 
 # Write to file
@@ -96,6 +99,6 @@ write.csv(passes,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/j_marki
 #frames<-left_join(frames,oc2,by="mid");setDT(frames)
 
 # Remove unnecessary dataframes
-rm(list= ls()[!(ls() %in% c('gameid','frames2','frames_reb','markings','js',
-                            'pdist','players','bst','gravity','trans','shots',
-                            'passes'))])
+rm(list= ls()[!(ls() %in% c('gameid','frames2','frames_reb','frames_tov',
+                            'markings','js','pdist','players','bst','gravity',
+                            'trans','shots','passes'))])

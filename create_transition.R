@@ -101,7 +101,7 @@ for(i in 1:5){
 }
 
 trans<-trans %>%
-    select(id,season,period,game_clock,frame,frame_time,possession_id,chance_id,
+    select(id,possession_id,chance_id,season,period,game_clock,frame,frame_time,
            oteam,dteam,is_three,putback,end_event,end_of_quarter,
            off_player1,off_player2,off_player3,off_player4,off_player5,
            def_player1,def_player2,def_player3,def_player4,def_player5,

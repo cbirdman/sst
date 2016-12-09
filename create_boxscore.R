@@ -14,13 +14,18 @@ setnames(box,head)
 rm(head,url)
 box<-box[!is.na(MIN)]
 setnames(box,"PLAYER_ID","player_id")
+for(i in names(box)[10:28]){
+    box[[i]]<-as.numeric(box[[i]])
+}
+box[,c("min","sec"):=tstrsplit(MIN, ":", fixed=TRUE)]
+box[,second_played:=as.numeric(min)*60+as.numeric(sec)][,min:=NULL][,sec:=NULL]
 
 # Read players for id lookup
 ap<-players[,.(id,ids_id)]
 setnames(ap,c("eagle_id","player_id"))
 
-# think about: blkt/blko, tovl,tovd, ofd, charge, etc
-# other still needed: kif, deter, gravity, 
+# think about: blkt/blko, tovl, tovd, ofd, charge, etc
+# other still needed: kif, deter 
 
 
 # touches: passes,touches,dribbles
@@ -31,9 +36,19 @@ setnames(touches,"player","eagle_id")
 touches<-left_join(touches,ap,by="eagle_id")
 box<-left_join(box,touches,by="player_id");setDT(box)
 
+# picks: picks
+picks<-as.data.table(js$picks)
+picks<-picks[,.(screener)]
+picks$screener<-as.character(picks$screener)
+picks[,picks:=1][,picks:=sum(picks),by="screener"]
+picks<-distinct(picks,picks,.keep_all = T)
+setnames(picks,"screener","eagle_id")
+box<-left_join(box,picks,by="eagle_id");setDT(box)
+
 # shots
 #   first offense:
 off_shots<-shots[,.(player_id,potential_assist,sefg,shot_clock,blocked,shot_dist)]
+off_shots[,shot_clock:=ifelse(is.na(shot_clock),12,shot_clock)]
 off_shots[,past:=sum(potential_assist), by=player_id]
 off_shots[,sefg:=mean(sefg),by=player_id][,shot_clock:=mean(shot_clock),by=player_id]
 off_shots[,blkd:=sum(blocked),by=player_id][,dist:=mean(shot_dist),by=player_id]
@@ -80,8 +95,13 @@ setnames(pass,"passer","player_id")
 box<-left_join(box,pass,by="player_id");setDT(box)
 
 # turnovers
-#tov<-as.data.table(js$turnovers)
-#   forced turnovers (i still have to create this lol)
+to<-tov[!is.na(to_forcing_id),.(to_forcing_id)]
+to[,forced_tov:=1]
+to[,forced_tov:=sum(forced_tov),by="to_forcing_id"]
+to<-distinct(to,to_forcing_id,.keep_all = T);setDT(to)
+setnames(to,"to_forcing_id","player_id")
+box<-left_join(box,to,by="player_id");setDT(box)
+box[,forced_tov:=forced_tov-STL]
 
 # drives
 drives<-as.data.table(js$drives)
@@ -91,16 +111,6 @@ drives<-distinct(drives,bhr,.keep_all = T)
 setnames(drives,"bhr","eagle_id")
 drives$eagle_id<-as.character(drives$eagle_id)
 box<-left_join(box,drives,by="eagle_id");setDT(box)
-
-# charges
-# charges<-as.data.table(js$charges)
-# charges<-charges[,charge:=1][,charge:=sum(charge),by="taker_id"]
-# charges<-distinct(charges,taker_id,.keep_all=T)
-# charges<-charges[,.(taker_id,charge)]
-# setnames(charges,"taker_id","eagle_id")
-# charges$eagle_id<-as.character(charges$eagle_id)
-# box<-left_join(box,charges,by="eagle_id");setDT(box)
-# box[,charge:=ifelse(is.na(charge),0,charge)]
 
 # rebounds
 reb<-rebounds
@@ -176,6 +186,9 @@ box<-left_join(box,spacing,by="player_id")
 box<-left_join(box,gravity,by="player_id")
 
 box[is.na(box)] <- 0
+box<-select(box,GAME_ID,TEAM_ABBREVIATION,player_id,PLAYER_NAME,MIN:bdist)
+setnames(box,c("GAME_ID","TEAM_ABBREVIATION","PLAYER_NAME"),
+             c("game_id","team_abbrev","player"))
 
 # Write to file
 write.csv(box,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/j_markings/",

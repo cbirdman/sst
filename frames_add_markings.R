@@ -8,7 +8,7 @@ library(data.table)
 source("functions.R")
 
 # read in relevant files
-gameid<-"2014120503"
+gameid<-"2016120724"
 # frames<-fread(paste0("J:/eagle/frames/",gameid,".csv"))
 # js<-fromJSON(paste0("J:/eagle/markings/",gameid,".json"))
 path<-"C:/Users/brocatoj/Documents/Basketball/Tracking/"

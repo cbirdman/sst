@@ -102,7 +102,7 @@ de[,id:=paste0(game_code,"_",period,"_",frame)]
 de[,season:=ifelse(as.numeric(substr(gameid,5,6))>7,
                     as.numeric(substr(gameid,1,4)),
                     as.numeric(substr(gameid,1,4))-1)]
-de<-de[,.(id,season,game_code,period,frame,gameClock,possession_id,chance_id,
+de<-de[,.(id,possession_id,chance_id,season,game_code,period,frame,gameClock,
             error_type,defender,ballhandler)]
 de$defender<-as.character(as.numeric(de$defender))
 de$ballhandler<-as.character(as.numeric(de$ballhandler))
@@ -126,20 +126,20 @@ write.csv(de,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/j_markings/
 # markings_plus<-paste0(markings_plus,'"defensive_errors": ',de2,",")
 # rm(frames2)
 
-# Create simple de file for viewing purposes
-setDT(de)
-simple_de<-de
-simple_de$gameClock<-as.numeric(simple_de$gameClock)
-simple_de[,TL:=paste(floor(gameClock/60),".",gameClock%%60,sep="")]
-ap<-players[!is.na(id),.(ids_id,james_id)]
-setnames(ap,c("defender","player"))
-simple_de<-left_join(simple_de,ap,by="defender")
-simple_de<-select(simple_de,period,TL,chance_id,player,error_type)
-chances<-js$chances
-chances<-select(chances,id,end_shot_clock,past_hc_shot_clock)
-setnames(chances,"id","chance_id")
-simple_de<-left_join(simple_de,chances,by="chance_id")
-write.csv(simple_de,"reg/ok.csv",row.names=F)
+# # Create simple de file for viewing purposes
+# setDT(de)
+# simple_de<-de
+# simple_de$gameClock<-as.numeric(simple_de$gameClock)
+# simple_de[,TL:=paste(floor(gameClock/60),".",gameClock%%60,sep="")]
+# ap<-players[!is.na(id),.(ids_id,james_id)]
+# setnames(ap,c("defender","player"))
+# simple_de<-left_join(simple_de,ap,by="defender")
+# simple_de<-select(simple_de,period,TL,chance_id,player,error_type)
+# chances<-js$chances
+# chances<-select(chances,id,end_shot_clock,past_hc_shot_clock)
+# setnames(chances,"id","chance_id")
+# simple_de<-left_join(simple_de,chances,by="chance_id")
+# write.csv(simple_de,"reg/ok.csv",row.names=F)
 
 # Remove unnecessary dataframes
 # rm(list= ls()[!(ls() %in% c('gameid','frames2','frames_reb','markings','js',
