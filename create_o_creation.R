@@ -99,6 +99,6 @@ write.csv(passes,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/j_marki
 #frames<-left_join(frames,oc2,by="mid");setDT(frames)
 
 # Remove unnecessary dataframes
-rm(list= ls()[!(ls() %in% c('gameid','frames2','frames_reb','frames_tov',
+rm(list= ls()[!(ls() %in% c('gameid','frames2','frames_reb','frames_tov','frames_hc',
                             'markings','js','pdist','players','bst','gravity',
                             'trans','shots','passes'))])

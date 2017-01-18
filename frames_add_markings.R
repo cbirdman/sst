@@ -8,7 +8,7 @@ library(data.table)
 source("functions.R")
 
 # read in relevant files
-gameid<-"2016120724"
+#gameid<-"2016120724"
 # frames<-fread(paste0("J:/eagle/frames/",gameid,".csv"))
 # js<-fromJSON(paste0("J:/eagle/markings/",gameid,".json"))
 path<-"C:/Users/brocatoj/Documents/Basketball/Tracking/"
@@ -68,11 +68,10 @@ frames<-fread(paste0("E:/Tracking/frames_csv/",gameid,".csv"))
     pbp<-pbp[event%in%c("ORB","DRB"),.(chance_id,event)]
     rebounds<-left_join(rebounds,pbp,by="chance_id");setDT(rebounds)
     rebounds[,pid:=paste0(period,"_",rebound_game_clock)][,dplayer_id:=NA]
-    df<-distinct(frames,gameClock,.keep_all=T)
-    df<-df[,.(period,gameClock,idx)]
+    df<-frames[,.(period,gameClock,idx)]
     df[,pid:=paste0(period,"_",gameClock)]
     df<-df[,.(pid,idx)]
-    rebounds<-left_join(rebounds,df,by="pid");setDT(rebounds);rm(df)
+    rebounds<-join(rebounds,df,by="pid",match="first");setDT(rebounds);rm(df)
     setnames(rebounds,c("idx","rebounder"),c("frame","player_id"))
     rebounds<-rebounds[,.(period,frame,event,player_id,dplayer_id)]
     

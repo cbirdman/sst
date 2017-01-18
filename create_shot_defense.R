@@ -5,6 +5,9 @@ frames2<-frames[Reduce("|",shift(event%in%c("2PM","2PX","3PM","3PX","SF"),0:151,
 frames2<-select(frames2,game_code:pend)
 frames_reb<-frames[Reduce("|",shift(event%in%c("2PM","2PX","3PM","3PX","SF"),0:151))]
 frames_tov<-frames[event=="TO"]
+frames_hc<-frames[ifelse(pend==1,ball_x<30,ball_x>64)&bh!=0&bhd!=0]
+frames_hc<-frames_hc[,.(bh,bhd)]
+frames_hc[,secs:=0.04]
 rm(frames)
 
 # Remove event NAs
@@ -138,7 +141,7 @@ write.csv(shots,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/j_markin
 #markings_plus<-paste0('{"shots_plus": ',shots,",")
 
 # Remove unnecessary dataframes2
-rm(list= ls()[!(ls() %in% c('gameid','frames2','frames_reb','frames_tov',
+rm(list= ls()[!(ls() %in% c('gameid','frames2','frames_reb','frames_tov','frames_hc',
                             'markings','js','pdist','players','bst','gravity',
                             'trans','shots'))])
 

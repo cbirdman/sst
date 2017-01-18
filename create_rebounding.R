@@ -73,7 +73,7 @@ for(i in c("ap1","ap2","ap3","ap4","ap5","hp1","hp2","hp3","hp4","hp5")){
         paste(bw,paste0("bw",frames_reb[[i]])),bw)]
     frames_reb[,ora:=
       ifelse(event=="ORB",
-        ifelse(player_id==frames_reb[[i]],paste0("ora",shift(frames_reb[[gsub("p","d",i)]],25)),
+        ifelse(player_id==frames_reb[[i]],paste0("ora",obhd),
                ora),ora)]
 }
 
@@ -152,6 +152,6 @@ write.csv(rebounds,paste0("C:/Users/brocatoj/Documents/Basketball/Tracking/j_mar
 #markings_plus<-paste0(markings_plus,'"rebounds_plus": ',rebounds,"}")
 
 #Remove unnecessary dataframes
-rm(list= ls()[!(ls() %in% c('gameid','frames2','frames_reb','frames_tov',
+rm(list= ls()[!(ls() %in% c('gameid','frames2','frames_reb','frames_tov','frames_hc',
                             'markings','js','pdist','players','bst','gravity',
                             'trans','shots','passes','de','rebounds'))])
